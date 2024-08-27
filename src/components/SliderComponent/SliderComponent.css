@@ -1,0 +1,19 @@
+/* SliderComponent.css */
+.slick-slide {
+    padding: 0 12px; /* Xóa padding để các slide chiếm toàn bộ chiều rộng của container */
+    box-sizing: border-box; /* Đảm bảo padding và border được tính vào kích thước tổng thể */
+}
+
+
+.slider-item {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.slider-image {
+    width: 100%;
+    height: auto;
+    border-radius: 10px; /* Bo góc cho hình ảnh */
+    overflow: hidden; /* Đảm bảo hình ảnh nằm gọn trong bo góc */
+}
