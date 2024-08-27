@@ -33,7 +33,7 @@ const ButtonInputSearch = (props) => {
           color: colorButton,
         }}
         textButton={textButton}
-      ></ButtonComponent>
+      />
     </div>
   );
 };

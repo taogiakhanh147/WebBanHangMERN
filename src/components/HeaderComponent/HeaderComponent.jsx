@@ -1,5 +1,5 @@
 import React from "react";
-import { Col } from "antd";
+import { Badge, Col } from "antd";
 import {
   WrapperHeader,
   WrapperTextHeader,
@@ -18,8 +18,8 @@ const HeaderComponent = () => {
   return (
     <div>
       <WrapperHeader>
-        <Col span={6} style={{alignItems:"center"}}>
-          <WrapperTextHeader >WEB BÁN HÀNG</WrapperTextHeader>
+        <Col span={6} style={{ alignItems: "center" }}>
+          <WrapperTextHeader>WEB BÁN HÀNG</WrapperTextHeader>
         </Col>
         <Col span={12}>
           <ButtonInputSearch
@@ -28,7 +28,10 @@ const HeaderComponent = () => {
             placeholder="Nhập vào từ tìm kiếm"
           />
         </Col>
-        <Col span={6} style={{ display: "flex", gap: "20px", alignItems:"center" }}>
+        <Col
+          span={6}
+          style={{ display: "flex", gap: "20px", alignItems: "center" }}
+        >
           <WrapperHeaderAccount>
             <UserOutlined style={{ fontSize: "30px" }} />
             <div>
@@ -42,7 +45,11 @@ const HeaderComponent = () => {
             </div>
           </WrapperHeaderAccount>
           <div>
-            <ShoppingCartOutlined style={{ fontSize: "30px", color: "#fff" }} />
+            <Badge count={4} size="small">
+              <ShoppingCartOutlined
+                style={{ fontSize: "30px", color: "#fff" }}
+              />
+            </Badge>
             <WrapperTextHeaderSmall>Giỏ hàng</WrapperTextHeaderSmall>
           </div>
         </Col>
