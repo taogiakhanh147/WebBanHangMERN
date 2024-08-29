@@ -1,8 +1,10 @@
 import React from 'react'
+import { WrapperTypeProductText } from './style'
+
 
 const TypeProduct = ({name}) => {
   return (
-    <div>{name}</div>
+    <WrapperTypeProductText>{name}</WrapperTypeProductText>
   )
 }
 

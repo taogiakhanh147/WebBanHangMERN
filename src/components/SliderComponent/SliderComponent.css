@@ -1,19 +1,68 @@
 /* SliderComponent.css */
 .slick-slide {
-    padding: 0 12px; /* Xóa padding để các slide chiếm toàn bộ chiều rộng của container */
-    box-sizing: border-box; /* Đảm bảo padding và border được tính vào kích thước tổng thể */
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-top: 16px;
+  padding-bottom: 30px;
+  box-sizing: border-box; /* Đảm bảo padding và border được tính vào kích thước tổng thể */
 }
 
-
 .slider-item {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .slider-image {
-    width: 100%;
-    height: auto;
-    border-radius: 10px; /* Bo góc cho hình ảnh */
-    overflow: hidden; /* Đảm bảo hình ảnh nằm gọn trong bo góc */
+  width: 100%;
+  height: auto;
+  border-radius: 10px; /* Bo góc cho hình ảnh */
+  overflow: hidden; /* Đảm bảo hình ảnh nằm gọn trong bo góc */
+}
+
+/* Tùy chỉnh nút mũi tên */
+.arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgb(255, 255, 255);
+  color: rgb(10, 104, 255);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  z-index: 2;
+  font-size: 20px;
+}
+
+.arrow.prev {
+  left: -20px;
+}
+
+.arrow.next {
+  right: -20px;
+}
+
+/* Điều chỉnh vị trí của dots */
+.slick-dots {
+  bottom: -10px; 
+}
+
+/* Tùy chỉnh các dots thành hình thanh dẹt */
+.slick-dots li button::before {
+  font-size: 0; /* Ẩn biểu tượng mặc định */
+  content: "";
+  display: block;
+  width: 24px; /* Chiều dài của thanh */
+  height: 4px; /* Chiều cao của thanh */
+  background-color: #ccc; /* Màu sắc ban đầu của thanh */
+  border-radius: 2px; /* Bo góc nhẹ cho thanh */
+}
+
+/* Đổi màu dots khi active */
+.slick-dots li.slick-active button::before {
+  background-color: rgb(10, 104, 255); /* Màu xanh cho dots khi active */
 }
