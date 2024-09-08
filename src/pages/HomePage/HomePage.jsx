@@ -15,19 +15,35 @@ import slider6 from "../../assets/images/slider6.jpg";
 import CardComponent from "../../components/CardComponent/CardComponent";
 import NavbarComponent from "../../components/NavbarComponent/NavbarComponent";
 import ButtonComponent from "../../components/ButtonComponent/ButtonComponent";
+import { useQuery } from "@tanstack/react-query";
+import * as ProductService from "../../services/ProductService"
 
 const HomePage = () => {
   const arr = ["TV", "Tủ lạnh", "Laptop"];
+  const fetchProductAll = async () => {
+    const res = await ProductService.getAllProduct();
+    console.log("res", res);
+    return res;
+  }
+
+  const { status, data: products } = useQuery({
+    queryKey: ['products'],
+    queryFn: fetchProductAll,
+    retry: 3,
+    retryDelay: 1000
+  });
+
+  console.log("data", products);
   return (
     <>
-      <div style={{ width: `1270px`, margin: `0 auto`}}>
+      <div style={{ width: `1270px`, margin: `0 auto` }}>
         <WrapperTypeProduct>
           {arr.map((item) => {
             return <TypeProduct name={item} key={item} />;
           })}
         </WrapperTypeProduct>
       </div>
-      <div style={{width: "100%", height: "16px", backgroundColor: "#efefef"}}></div>
+      <div style={{ width: "100%", height: "16px", backgroundColor: "#efefef" }}></div>
       <div
         className="body"
         style={{ width: `100%`, backgroundColor: `#efefef` }}
@@ -40,12 +56,12 @@ const HomePage = () => {
             margin: "0 auto"
           }}
         >
-          <div style={{width: "1270px", height: "360px", backgroundColor: "#FFFFFF", borderRadius: "10px"}}>
+          <div style={{ width: "1270px", height: "360px", backgroundColor: "#FFFFFF", borderRadius: "10px" }}>
             <SliderComponent
               arrImages={[slider1, slider2, slider3, slider4, slider5, slider6]}
             />
           </div>
-          <div style={{width: "1270px", backgroundColor: "#FFFFFF", borderRadius: "10px"}}>
+          <div style={{ width: "1270px", backgroundColor: "#FFFFFF", borderRadius: "10px" }}>
             <WrapperProducts
               style={{
                 marginTop: "20px",
@@ -57,14 +73,22 @@ const HomePage = () => {
                 padding: "20px"
               }}
             >
-              <CardComponent />
-              <CardComponent />
-              <CardComponent />
-              <CardComponent />
-              <CardComponent />
-              <CardComponent />
-              <CardComponent />
-              <CardComponent />
+              {products?.data?.map((product) => {
+                return (
+                  <CardComponent
+                    key={product._id}
+                    countInStock={product.countInStock}
+                    description={product.description}
+                    image={product.image}
+                    name={product.name}
+                    price={product.price}
+                    rating={product.rating}
+                    type={product.type}
+                    selled={product.selled}
+                    discount={product.discount}
+                  />
+                )
+              })}
             </WrapperProducts>
           </div>
           <div

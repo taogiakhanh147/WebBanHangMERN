@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { routes } from "./routes";
 import HeaderComponent from "./components/HeaderComponent/HeaderComponent";
@@ -7,17 +7,22 @@ import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { jwtDecode } from "jwt-decode";
 import * as UserService from "./services/UserService";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { isJsonString } from "./utils";
 import { updateUser } from "./redux/slides/userSlide";
+import Loading from "./components/LoadingComponent/Loading";
 
 function App() {
   const dispatch = useDispatch();
+  const [isPending, setIsPending] = useState(false)
+  const user = useSelector((state) => state.user)
   useEffect(() => {
+    setIsPending(true)
     const {storageData, decoded} = handleDecoded();
     if (decoded?.id) {
       handleGetDetailUser(decoded?.id, storageData);
     }
+    setIsPending(false)
   }, []);
 
   UserService.axiosJWT.interceptors.request.use( async (config) => {
@@ -49,27 +54,30 @@ function App() {
 
   return (
     <div>
-      <Router>
-        <Routes>
-          {routes.map((route, index) => {
-            const Page = route.page;
-            const Layout = route.isShowHeader ? DefaultComponent : Fragment;
-            return (
-              <Route
-                key={route.path}
-                path={route.path}
-                element={
-                  <>
-                    <Layout>
-                      <Page />
-                    </Layout>
-                  </>
-                }
-              />
-            );
-          })}
-        </Routes>
-      </Router>
+      <Loading isPending={isPending}>
+        <Router>
+          <Routes>
+            {routes.map((route, index) => {
+              const Page = route.page;
+              const Layout = route.isShowHeader ? DefaultComponent : Fragment;
+              if (!route.isPrivate || user.isAdmin) {
+              return (
+                <Route
+                  key={route.path}
+                  path={route.path}
+                  element={
+                    <>
+                      <Layout>
+                        <Page />
+                      </Layout>
+                    </>
+                  }
+                />
+              )};
+            })}
+          </Routes>
+        </Router>
+      </Loading>
     </div>
   );
 }

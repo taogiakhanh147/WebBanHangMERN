@@ -15,6 +15,7 @@ export const WrapperTextHeader = styled.span`
     color: #fff;
     font-weight: bold;
     text-align: left;
+    cursor: pointer;
 `
 
 export const WrapperHeaderAccount = styled.div`
