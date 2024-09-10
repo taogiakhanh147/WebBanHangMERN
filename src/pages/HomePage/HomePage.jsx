@@ -13,8 +13,6 @@ import slider4 from "../../assets/images/slider4.png";
 import slider5 from "../../assets/images/slider5.png";
 import slider6 from "../../assets/images/slider6.jpg";
 import CardComponent from "../../components/CardComponent/CardComponent";
-import NavbarComponent from "../../components/NavbarComponent/NavbarComponent";
-import ButtonComponent from "../../components/ButtonComponent/ButtonComponent";
 import { useQuery } from "@tanstack/react-query";
 import * as ProductService from "../../services/ProductService"
 
@@ -22,7 +20,6 @@ const HomePage = () => {
   const arr = ["TV", "Tủ lạnh", "Laptop"];
   const fetchProductAll = async () => {
     const res = await ProductService.getAllProduct();
-    console.log("res", res);
     return res;
   }
 
@@ -32,8 +29,7 @@ const HomePage = () => {
     retry: 3,
     retryDelay: 1000
   });
-
-  console.log("data", products);
+  
   return (
     <>
       <div style={{ width: `1270px`, margin: `0 auto` }}>

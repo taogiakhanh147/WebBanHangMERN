@@ -34,8 +34,7 @@ export const routes = [
     {
         path: '/sign-in',
         page: SignInPage,
-        isShowHeader: false,
-        isPrivate: false
+        isShowHeader: false
     },
     {
         path: '/sign-up',

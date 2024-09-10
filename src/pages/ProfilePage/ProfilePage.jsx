@@ -32,8 +32,6 @@ const ProfilePage = () => {
     UserService.updateUser(id, access_token, rest);
   });
 
-  // console.log("mutation: ", mutation)
-
   const dispatch = useDispatch();
   const { data, isPending, isSuccess, isError } = mutation;
 
@@ -66,12 +64,15 @@ const ProfilePage = () => {
   const handleOnChangeEmail = (value) => {
     setEmail(value);
   };
+
   const handleOnChangePhone = (value) => {
     setPhone(value);
   };
+
   const handleOnChangeAddress = (value) => {
     setAddress(value);
   };
+
   const handleOnChangeAvatar = async ({ fileList }) => {
     const file = fileList[0];
     if (!file.url && !file.preview) {
@@ -79,6 +80,7 @@ const ProfilePage = () => {
     }
     setAvatar(file.preview);
   };
+  
   const handelUpdate = () => {
     mutation.mutate({
       id: user?.id,
