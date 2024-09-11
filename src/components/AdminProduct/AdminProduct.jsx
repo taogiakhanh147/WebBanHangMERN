@@ -75,9 +75,15 @@ const AdminProduct = () => {
     return res;
   });
 
-  const mutationDelete = useMutationHooks((data) => {
+  const mutationDeleted = useMutationHooks((data) => {
     const { id, token } = data;
     const res = ProductService.deleteProduct(id, token);
+    return res;
+  });
+
+  const mutationDeletedMany = useMutationHooks((data) => {
+    const { token, ...ids } = data;
+    const res = ProductService.deleteManyProduct(ids, token);
     return res;
   });
 
@@ -93,7 +99,14 @@ const AdminProduct = () => {
     isPending: isPendingDeleted,
     isSuccess: isSuccessDeleted,
     isError: isErrorDeleted,
-  } = mutationDelete;
+  } = mutationDeleted;
+
+  const {
+    data: dataDeletedMany,
+    isPending: isPendingDeletedMany,
+    isSuccess: isSuccessDeletedMany,
+    isError: isErrorDeletedMany,
+  } = mutationDeletedMany;
 
   const getAllProducts = async () => {
     const res = await ProductService.getAllProduct();
@@ -121,14 +134,25 @@ const AdminProduct = () => {
   }, [form, stateProductDetails]);
 
   useEffect(() => {
-    if (rowSelected) {
+    if (rowSelected && isOpenDrawer) {
       setIsPendingUpdate(true);
       fetchGetDetailsProduct(rowSelected);
     }
-  }, [rowSelected]);
+  }, [rowSelected, isOpenDrawer]);
 
   const handleDetailIsProduct = () => {
     setIsOpenDrawer(true);
+  };
+
+  const handleDeleteManyProducts = (ids) => {
+    mutationDeletedMany.mutate(
+      { ids: ids, token: user?.access_token },
+      {
+        onSettled: () => {
+          queryProduct.refetch();
+        },
+      }
+    );
   };
 
   const queryProduct = useQuery({
@@ -320,6 +344,14 @@ const AdminProduct = () => {
   }, [isSuccess]);
 
   useEffect(() => {
+    if (isSuccessDeletedMany && dataDeletedMany?.status === "OK") {
+      message.success();
+    } else if (isErrorDeletedMany) {
+      message.error();
+    }
+  }, [isSuccessDeletedMany]);
+
+  useEffect(() => {
     if (isSuccessDeleted && dataDeleted?.status === "OK") {
       message.success();
       handleCancelDelete();
@@ -356,7 +388,7 @@ const AdminProduct = () => {
   };
 
   const handleDeleteProduct = () => {
-    mutationDelete.mutate(
+    mutationDeleted.mutate(
       { id: rowSelected, token: user?.access_token },
       {
         onSettled: () => {
@@ -457,6 +489,7 @@ const AdminProduct = () => {
       </div>
       <div style={{ marginTop: "20px" }}>
         <TableComponent
+          handleDeleteMany={handleDeleteManyProducts}
           columns={columns}
           isLoading={isLoadingProduct}
           data={dataTable}
