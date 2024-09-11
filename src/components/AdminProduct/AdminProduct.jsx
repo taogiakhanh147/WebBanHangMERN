@@ -1,7 +1,12 @@
-import React, { useEffect, useState } from "react";
-import { PlusOutlined, DeleteOutlined, EditOutlined } from "@ant-design/icons";
+import React, { useEffect, useRef, useState } from "react";
+import {
+  PlusOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  SearchOutlined,
+} from "@ant-design/icons";
 import { WrapperHeader, WrapperUploadFile } from "./style";
-import { Button, Form, Modal } from "antd";
+import { Button, Form, Space } from "antd";
 import TableComponent from "../TableComponent/TableComponent";
 import InputComponent from "../InputComponent/InputComponent";
 import { getBase64 } from "../../utils";
@@ -20,6 +25,10 @@ const AdminProduct = () => {
   const [rowSelected, setRowSelected] = useState("");
   const [isPendingUpdate, setIsPendingUpdate] = useState(false);
   const [isOpenDrawer, setIsOpenDrawer] = useState(false);
+  const [searchText, setSearchText] = useState("");
+  const [searchedColumn, setSearchedColumn] = useState("");
+  const searchInput = useRef(null);
+
   const [stateProduct, setStateProduct] = useState({
     name: "",
     price: "",
@@ -67,7 +76,7 @@ const AdminProduct = () => {
   });
 
   const mutationDelete = useMutationHooks((data) => {
-    const { id, token} = data;
+    const { id, token } = data;
     const res = ProductService.deleteProduct(id, token);
     return res;
   });
@@ -133,7 +142,8 @@ const AdminProduct = () => {
     return (
       <div>
         <DeleteOutlined
-          style={{ color: "red", fontSize: "30px", cursor: "pointer" }} onClick={() => setIsModalOpenDelete(true)}
+          style={{ color: "red", fontSize: "30px", cursor: "pointer" }}
+          onClick={() => setIsModalOpenDelete(true)}
         />
         <EditOutlined
           style={{ color: "orange", fontSize: "30px", cursor: "pointer" }}
@@ -143,19 +153,145 @@ const AdminProduct = () => {
     );
   };
 
+  const handleSearch = (selectedKeys, confirm, dataIndex) => {
+    confirm();
+    // setSearchText(selectedKeys[0]);
+    // setSearchedColumn(dataIndex);
+  };
+  const handleReset = (clearFilters) => {
+    clearFilters();
+    // setSearchText('');
+  };
+
+  const getColumnSearchProps = (dataIndex) => ({
+    filterDropdown: ({
+      setSelectedKeys,
+      selectedKeys,
+      confirm,
+      clearFilters,
+    }) => (
+      <div
+        style={{
+          padding: 8,
+        }}
+        onKeyDown={(e) => e.stopPropagation()}
+      >
+        <InputComponent
+          ref={searchInput}
+          placeholder={`Search ${dataIndex}`}
+          value={selectedKeys[0]}
+          onChange={(e) =>
+            setSelectedKeys(e.target.value ? [e.target.value] : [])
+          }
+          onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
+          style={{
+            marginBottom: 8,
+            display: "block",
+          }}
+        />
+        <Space>
+          <Button
+            type="primary"
+            onClick={() => handleSearch(selectedKeys, confirm, dataIndex)}
+            icon={<SearchOutlined />}
+            size="small"
+            style={{
+              width: 90,
+            }}
+          >
+            Search
+          </Button>
+          <Button
+            onClick={() => clearFilters && handleReset(clearFilters)}
+            size="small"
+            style={{
+              width: 90,
+            }}
+          >
+            Reset
+          </Button>
+        </Space>
+      </div>
+    ),
+    filterIcon: (filtered) => (
+      <SearchOutlined
+        style={{
+          color: filtered ? "#1677ff" : undefined,
+        }}
+      />
+    ),
+    onFilter: (value, record) =>
+      record[dataIndex].toString().toLowerCase().includes(value.toLowerCase()),
+    onFilterDropdownOpenChange: (visible) => {
+      if (visible) {
+        setTimeout(() => searchInput.current?.select(), 100);
+      }
+    },
+    // render: (text) =>
+    //   searchedColumn === dataIndex ? (
+    //     <Highlighter
+    //       highlightStyle={{
+    //         backgroundColor: '#ffc069',
+    //         padding: 0,
+    //       }}
+    //       searchWords={[searchText]}
+    //       autoEscape
+    //       textToHighlight={text ? text.toString() : ''}
+    //     />
+    //   ) : (
+    //     text
+    //   ),
+  });
+
   const columns = [
     {
       title: "Name",
       dataIndex: "name",
-      render: (text) => <a>{text}</a>,
+      sorter: (a, b) => a.name.length - b.name.length,
+      ...getColumnSearchProps("name"),
     },
     {
       title: "Price",
       dataIndex: "price",
+      sorter: (a, b) => a.price - b.price,
+      filters: [
+        {
+          text: ">= 50",
+          value: ">=",
+        },
+        {
+          text: "< 50",
+          value: "<",
+        },
+      ],
+      onFilter: (value, record) => {
+        console.log("value", value, record);
+        if (value === ">=") {
+          return record.price >= 50;
+        }
+        return record.price < 50;
+      },
     },
     {
       title: "Rating",
       dataIndex: "rating",
+      sorter: (a, b) => a.rating - b.rating,
+      filters: [
+        {
+          text: ">= 3",
+          value: ">=",
+        },
+        {
+          text: "< 3",
+          value: "<",
+        },
+      ],
+      onFilter: (value, record) => {
+        if (value === ">=") {
+          return record.rating >= 3;
+        }
+        return record.rating < 3;
+      },
     },
     {
       title: "Type",
@@ -216,16 +352,19 @@ const AdminProduct = () => {
   }, [isSuccessUpdated]);
 
   const handleCancelDelete = () => {
-    setIsModalOpenDelete(false)
-  }
+    setIsModalOpenDelete(false);
+  };
 
   const handleDeleteProduct = () => {
-    mutationDelete.mutate({id: rowSelected, token: user?.access_token}, {
-      onSettled: () => {
-        queryProduct.refetch()
+    mutationDelete.mutate(
+      { id: rowSelected, token: user?.access_token },
+      {
+        onSettled: () => {
+          queryProduct.refetch();
+        },
       }
-    })
-  }
+    );
+  };
 
   const handleCancel = () => {
     setIsModelOpen(false);
@@ -332,6 +471,7 @@ const AdminProduct = () => {
       </div>
 
       <ModalComponent
+        forceRender
         title="Basic Modal"
         open={isModalOpen}
         onCancel={handleCancel}
@@ -667,7 +807,7 @@ const AdminProduct = () => {
         onOk={handleDeleteProduct}
       >
         <Loading isPending={isPendingDeleted}>
-         <div>Bạn có chắc xóa sản phẩm này không!</div>
+          <div>Bạn có chắc xóa sản phẩm này không!</div>
         </Loading>
       </ModalComponent>
     </div>
