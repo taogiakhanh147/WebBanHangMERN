@@ -18,6 +18,7 @@ import { useQuery } from "@tanstack/react-query";
 import DrawerComponent from "../DrawerComponent/DrawerComponent";
 import { useSelector } from "react-redux";
 import ModalComponent from "../ModalComponent/ModalComponent";
+import * as XLSX from "xlsx";
 
 const AdminProduct = () => {
   const [isModalOpen, setIsModelOpen] = useState(false);
@@ -471,6 +472,19 @@ const AdminProduct = () => {
     );
   };
 
+  const exportProductToExcel = () => {
+    const filterData = dataTable.map(row => ({
+      name: row.name,
+      price: row.price,
+      rating: row.rating,
+      type: row.type
+    }));
+    const worksheet = XLSX.utils.json_to_sheet(filterData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "products");
+    XLSX.writeFile(workbook, "products_table.xlsx");
+  };
+  
   return (
     <div>
       <WrapperHeader>Quản lý sản phẩm</WrapperHeader>
@@ -500,6 +514,7 @@ const AdminProduct = () => {
               },
             };
           }}
+          exportToExcel={exportProductToExcel}
         />
       </div>
 

@@ -8,42 +8,64 @@ const TableComponent = (props) => {
     data = [],
     isLoading = false,
     columns = [],
-    handleDeleteMany
+    handleDeleteMany,
+    exportToExcel,
   } = props;
 
-  const [rowSelectedKeys, setRowSelectedKeys] = useState([])
+  const [rowSelectedKeys, setRowSelectedKeys] = useState([]);
 
-  // rowSelection object indicates the need for row selection
   const rowSelection = {
     onChange: (selectedRowKeys, selectedRows) => {
-      setRowSelectedKeys(selectedRowKeys)
+      setRowSelectedKeys(selectedRowKeys);
     },
-    // getCheckboxProps: (record) => ({
-    //   disabled: record.name === "Disabled User", // Column configuration not to be checked
-    //   name: record.name,
-    // }),
   };
 
   const handleDeleteAll = () => {
-    handleDeleteMany(rowSelectedKeys)
-  }
+    handleDeleteMany(rowSelectedKeys);
+  };
+
+  const handleExportToExcel = () => {
+    if (exportToExcel) {
+      exportToExcel();
+    }
+  };
 
   return (
     <Loading isPending={isLoading}>
       {rowSelectedKeys.length > 0 && (
-      <div
-        style={{
-          background: "#1d1ddd",
-          color: "#fff",
-          fontWeight: "bold",
-          padding: "10px",
-          cursor: "pointer",
-        }}
-        onClick={handleDeleteAll}
-      >
-        Xóa tất cả
-      </div>
+        <div
+          style={{
+            background: "#1d1ddd",
+            color: "#fff",
+            fontWeight: "bold",
+            padding: "10px",
+            cursor: "pointer",
+          }}
+          onClick={handleDeleteAll}
+        >
+          Xóa tất cả
+        </div>
       )}
+
+      <div style={{width: '100%', display: 'flex', justifyContent: "flex-end"}}>
+        <button
+          onClick={handleExportToExcel}
+          style={{
+            background: "green",
+            marginTop: "10px",
+            marginBottom: "10px",
+            color: "white",
+            padding: "10px",
+            fontSize: "12px",
+            cursor: "pointer",
+            border: "none"
+          }}
+        >
+          {" "}
+          Export to Excel{" "}
+        </button>
+      </div>
+
       <Table
         rowSelection={{
           type: selectionType,

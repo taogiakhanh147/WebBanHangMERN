@@ -17,6 +17,7 @@ import {
   EditOutlined,
   SearchOutlined,
 } from "@ant-design/icons";
+import * as XLSX from "xlsx";
 
 const AdminUser = () => {
   const [isModalOpenDelete, setIsModalOpenDelete] = useState(false);
@@ -27,17 +28,13 @@ const AdminUser = () => {
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
 
-  const [stateUser, setStateUser] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    isAdmin: false,
-  });
   const [stateUserDetails, setStateUserDetails] = useState({
     name: "",
     email: "",
     phone: "",
     isAdmin: false,
+    avatar: "",
+    address: ""
   });
 
   const [form] = Form.useForm();
@@ -95,19 +92,20 @@ const AdminUser = () => {
   } = mutationDeletedMany;
 
   const getAllUsers = async () => {
-    const res = await UserService.getAllUser();
-    console.log("res", res);
+    const res = await UserService.getAllUser(user.access_token);
     return res;
   };
 
   const fetchGetDetailsUser = async (rowSelected) => {
-    const res = await UserService.getDetailUser(rowSelected);
+    const res = await UserService.getDetailUser(rowSelected, user.access_token);
     if (res?.data) {
       setStateUserDetails({
         name: res?.data.name,
         email: res?.data.email,
         phone: res?.data.phone,
         isAdmin: res?.data.isAdmin,
+        address: res?.data.address,
+        avatar: res?.data.avatar
       });
     }
     setIsPendingUpdate(false);
@@ -240,6 +238,12 @@ const AdminUser = () => {
       ...getColumnSearchProps("email"),
     },
     {
+      title: "Address",
+      dataIndex: "address",
+      sorter: (a, b) => a.address.length - b.address.length,
+      ...getColumnSearchProps("address"),
+    },
+    {
       title: "Admin",
       dataIndex: "isAdmin",
       filters: [
@@ -342,17 +346,6 @@ const AdminUser = () => {
     });
   };
 
-  const handleOnChangeAvatar = async ({ fileList }) => {
-    const file = fileList[0];
-    if (!file.url && !file.preview) {
-      file.preview = await getBase64(file.originFileObj);
-    }
-    setStateUser({
-      ...stateUser,
-      image: file.preview,
-    });
-  };
-
   const handleOnChangeAvatarDetails = async ({ fileList }) => {
     const file = fileList[0];
     if (!file.url && !file.preview) {
@@ -360,7 +353,7 @@ const AdminUser = () => {
     }
     setStateUserDetails({
       ...stateUserDetails,
-      image: file.preview,
+      avatar: file.preview,
     });
   };
 
@@ -378,6 +371,20 @@ const AdminUser = () => {
       }
     );
   };
+
+  const exportUserToExcel = () => {
+    const filterData = dataTable.map(row => ({
+      name: row.name,
+      email: row.email,
+      phone: row.phone,
+      address: row.address
+    }));
+    const worksheet = XLSX.utils.json_to_sheet(filterData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "users");
+    XLSX.writeFile(workbook, "users_table.xlsx");
+  };
+
   return (
     <div>
       <WrapperHeader>Quản lý người dùng</WrapperHeader>
@@ -394,6 +401,7 @@ const AdminUser = () => {
               },
             };
           }}
+          exportToExcel={exportUserToExcel}
         />
       </div>
 
@@ -470,32 +478,32 @@ const AdminUser = () => {
               />
             </Form.Item>
 
-            {/* isAdmin */}
+            {/* address */}
             <Form.Item
-              label="Admin"
-              name="isAdmin"
+              label="Address"
+              name="address"
               rules={[
                 {
                   required: true,
-                  message: "Please input your isAdmin",
+                  message: "Please input your address",
                 },
               ]}
             >
               <InputComponent
-                value={stateUserDetails.isAdmin}
+                value={stateUserDetails.address}
                 onChange={handleOnchangeDetails}
-                name="isAdmin"
+                name="address"
               />
             </Form.Item>
 
-            {/* image */}
-            {/* <Form.Item
-                label="Image"
-                name="image"
+            {/* avatar */}
+            <Form.Item
+                label="Avatar"
+                name="avatar"
                 rules={[
                   {
                     required: true,
-                    message: "Please input your image",
+                    message: "Please input your avatar",
                   },
                 ]}
               >
@@ -504,9 +512,9 @@ const AdminUser = () => {
                   maxCount={1}
                 >
                   <Button>Select file</Button>
-                  {stateProductDetails?.image && (
+                  {stateUserDetails?.avatar && (
                     <img
-                      src={stateProductDetails?.image}
+                      src={stateUserDetails?.avatar}
                       style={{
                         height: "60px",
                         width: "60px",
@@ -518,7 +526,7 @@ const AdminUser = () => {
                     />
                   )}
                 </WrapperUploadFile>
-              </Form.Item> */}
+              </Form.Item>
 
             <Form.Item
               wrapperCol={{
