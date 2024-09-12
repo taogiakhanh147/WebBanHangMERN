@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import TypeProduct from "../../components/TypeProduct/TypeProduct";
 import {
   WrapperButtonMore,
@@ -15,23 +15,51 @@ import slider6 from "../../assets/images/slider6.jpg";
 import CardComponent from "../../components/CardComponent/CardComponent";
 import { useQuery } from "@tanstack/react-query";
 import * as ProductService from "../../services/ProductService"
+import { useSelector } from "react-redux";
+import Loading from "../../components/LoadingComponent/Loading";
+import { useDebounce } from "../../hooks/useDebounce";
 
 const HomePage = () => {
+  const searchProduct = useSelector((state) => state?.product?.search)
+  const searchDebounce = useDebounce(searchProduct, 1000)
+  const refSearch = useRef()
+  const [stateProducts, setStateProducts] = useState([])
+  const [pending, setPending] = useState(false)
+
   const arr = ["TV", "Tủ lạnh", "Laptop"];
-  const fetchProductAll = async () => {
-    const res = await ProductService.getAllProduct();
-    return res;
+  const fetchProductAll = async (search) => {
+    const res = await ProductService.getAllProduct(search);
+    if(search?.length > 0 || refSearch.current) {
+      setStateProducts(res?.data)
+    } else {
+      return res;
+    }
   }
 
-  const { status, data: products } = useQuery({
+  useEffect(() => {
+    if(refSearch.current) {
+      setPending(true)
+      fetchProductAll(searchDebounce)
+    }
+    refSearch.current = true
+    setPending(false)
+  }, [searchDebounce])
+
+  const { isPending, data: products } = useQuery({
     queryKey: ['products'],
     queryFn: fetchProductAll,
     retry: 3,
     retryDelay: 1000
   });
+
+  useEffect(() => {
+    if(products?.data?.length > 0) {
+      setStateProducts(products?.data)
+    }
+  }, [products])
   
   return (
-    <>
+    <Loading isPending={isPending || pending}>
       <div style={{ width: `1270px`, margin: `0 auto` }}>
         <WrapperTypeProduct>
           {arr.map((item) => {
@@ -69,7 +97,7 @@ const HomePage = () => {
                 padding: "20px"
               }}
             >
-              {products?.data?.map((product) => {
+              {stateProducts?.map((product) => {
                 return (
                   <CardComponent
                     key={product._id}
@@ -110,7 +138,7 @@ const HomePage = () => {
           </div>
         </div>
       </div>
-    </>
+    </Loading>
   );
 };
 
