@@ -13,51 +13,38 @@ import slider4 from "../../assets/images/slider4.png";
 import slider5 from "../../assets/images/slider5.png";
 import slider6 from "../../assets/images/slider6.jpg";
 import CardComponent from "../../components/CardComponent/CardComponent";
-import { useQuery } from "@tanstack/react-query";
-import * as ProductService from "../../services/ProductService"
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import * as ProductService from "../../services/ProductService";
 import { useSelector } from "react-redux";
 import Loading from "../../components/LoadingComponent/Loading";
 import { useDebounce } from "../../hooks/useDebounce";
 
 const HomePage = () => {
-  const searchProduct = useSelector((state) => state?.product?.search)
-  const searchDebounce = useDebounce(searchProduct, 1000)
-  const refSearch = useRef()
-  const [stateProducts, setStateProducts] = useState([])
-  const [pending, setPending] = useState(false)
+  const searchProduct = useSelector((state) => state?.product?.search);
+  const searchDebounce = useDebounce(searchProduct, 1000);
+  const [pending, setPending] = useState(false);
+  const [limit, setLimit] = useState(6);
 
   const arr = ["TV", "Tủ lạnh", "Laptop"];
-  const fetchProductAll = async (search) => {
-    const res = await ProductService.getAllProduct(search);
-    if(search?.length > 0 || refSearch.current) {
-      setStateProducts(res?.data)
-    } else {
-      return res;
-    }
-  }
+  const fetchProductAll = async (context) => {
+    const limit = context?.queryKey && context?.queryKey[1];
+    const search = context?.queryKey && context?.queryKey[2];
+    const res = await ProductService.getAllProduct(search, limit);
+    return res;
+  };
 
-  useEffect(() => {
-    if(refSearch.current) {
-      setPending(true)
-      fetchProductAll(searchDebounce)
-    }
-    refSearch.current = true
-    setPending(false)
-  }, [searchDebounce])
-
-  const { isPending, data: products } = useQuery({
-    queryKey: ['products'],
+  const {
+    isPending,
+    data: products,
+    isPlaceholderData,
+  } = useQuery({
+    queryKey: ["products", limit, searchDebounce],
     queryFn: fetchProductAll,
     retry: 3,
-    retryDelay: 1000
+    retryDelay: 1000,
+    placeholderData: keepPreviousData,
   });
 
-  useEffect(() => {
-    if(products?.data?.length > 0) {
-      setStateProducts(products?.data)
-    }
-  }, [products])
-  
   return (
     <Loading isPending={isPending || pending}>
       <div style={{ width: `1270px`, margin: `0 auto` }}>
@@ -67,25 +54,41 @@ const HomePage = () => {
           })}
         </WrapperTypeProduct>
       </div>
-      <div style={{ width: "100%", height: "16px", backgroundColor: "#efefef" }}></div>
+      <div
+        style={{ width: "100%", height: "16px", backgroundColor: "#efefef" }}
+      ></div>
+
       <div
         className="body"
-        style={{ width: `100%`, backgroundColor: `#efefef` }}
+        style={{ width: `100%`, backgroundColor: `#efefef`, height: '100%', paddingBottom: '20px' }}
       >
         <div
           id="container"
           style={{
-            height: "1100px",
+            height: "100%",
             width: "1270px",
-            margin: "0 auto"
+            margin: "0 auto",
           }}
         >
-          <div style={{ width: "1270px", height: "360px", backgroundColor: "#FFFFFF", borderRadius: "10px" }}>
+          <div
+            style={{
+              width: "1270px",
+              height: "360px",
+              backgroundColor: "#FFFFFF",
+              borderRadius: "10px",
+            }}
+          >
             <SliderComponent
               arrImages={[slider1, slider2, slider3, slider4, slider5, slider6]}
             />
           </div>
-          <div style={{ width: "1270px", backgroundColor: "#FFFFFF", borderRadius: "10px" }}>
+          <div
+            style={{
+              width: "1270px",
+              backgroundColor: "#FFFFFF",
+              borderRadius: "10px",
+            }}
+          >
             <WrapperProducts
               style={{
                 marginTop: "20px",
@@ -94,10 +97,10 @@ const HomePage = () => {
                 gap: "30px",
                 flexWrap: "wrap",
                 marginTop: "16px",
-                padding: "20px"
+                padding: "20px",
               }}
             >
-              {stateProducts?.map((product) => {
+              {products?.data?.map((product) => {
                 return (
                   <CardComponent
                     key={product._id}
@@ -111,30 +114,35 @@ const HomePage = () => {
                     selled={product.selled}
                     discount={product.discount}
                   />
-                )
+                );
               })}
             </WrapperProducts>
           </div>
-          <div
-            style={{
-              width: "100%",
-              display: "flex",
-              justifyContent: "center",
-              marginTop: "10px",
+          <div style={{display:'flex', justifyContent: 'center', marginTop: '20px'}}>
+          <WrapperButtonMore
+            textButton={isPlaceholderData ? "Load more" : "Xem thêm"}
+            type="outline"
+            styleButton={{
+              border: `${products?.total === products?.data.length ? 'none' : '1px solid rgb(11,116,229)'}`,
+              color: `${
+                products?.total === products?.data.length
+                  ? "#ccc"
+                  : "rgb(11,116,229)"
+              }`,
+              width: `240px`,
+              height: `38px`,
+              boderRadius: `4px`,
             }}
-          >
-            <WrapperButtonMore
-              textButton="Xem thêm"
-              type="outline"
-              styleButton={{
-                border: `1px solid rgb(11,116,229)`,
-                color: `rgb(11,116,229)`,
-                width: `240px`,
-                height: `38px`,
-                boderRadius: `4px`,
-              }}
-              styleTextButton={{ fontWeight: 500 }}
-            />
+            disabled={
+              products?.total === products?.data.length ||
+              products?.totalPage === 1
+            }
+            styleTextButton={{
+              fontWeight: 500,
+              color: products?.total === products?.data.length && "#fff",
+            }}
+            onClick={() => setLimit((prev) => prev + 2)}
+          />
           </div>
         </div>
       </div>
