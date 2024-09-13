@@ -9,9 +9,14 @@ import {
   WrapperStyleTextSell,
 } from "./style";
 import { StarFilled } from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
 
 const CardComponent = (props) => {
-  const {countInStock, description, image, name, price, rating, type, selled, discount} = props
+  const {countInStock, description, image, name, price, rating, type, selled, discount, id} = props
+  const navagate = useNavigate()
+  const handleDetailsProduct = (id) => {
+    navagate(`/product-detail/${id}`)
+  }
   return (
     <WrapperCardStyle
       hoverable
@@ -23,6 +28,7 @@ const CardComponent = (props) => {
           style={{borderRadius: `5px 5px 0 0`}}
         />
       }
+      onClick={() => handleDetailsProduct(id)}
     >
       <StyleNameProduct>{name}</StyleNameProduct>
       <WrapperReportText>
