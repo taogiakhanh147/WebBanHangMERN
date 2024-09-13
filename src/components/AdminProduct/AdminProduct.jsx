@@ -6,10 +6,10 @@ import {
   SearchOutlined,
 } from "@ant-design/icons";
 import { WrapperHeader, WrapperUploadFile } from "./style";
-import { Button, Form, Space } from "antd";
+import { Button, Form, Select, Space } from "antd";
 import TableComponent from "../TableComponent/TableComponent";
 import InputComponent from "../InputComponent/InputComponent";
-import { getBase64 } from "../../utils";
+import { getBase64, renderOptions } from "../../utils";
 import * as ProductService from "../../services/ProductService";
 import { useMutationHooks } from "../../hooks/useMutationHook";
 import Loading from "../LoadingComponent/Loading";
@@ -26,8 +26,7 @@ const AdminProduct = () => {
   const [rowSelected, setRowSelected] = useState("");
   const [isPendingUpdate, setIsPendingUpdate] = useState(false);
   const [isOpenDrawer, setIsOpenDrawer] = useState(false);
-  const [searchText, setSearchText] = useState("");
-  const [searchedColumn, setSearchedColumn] = useState("");
+  const [typeSelect, setTypeSelect] = useState("");
   const searchInput = useRef(null);
 
   const [stateProduct, setStateProduct] = useState({
@@ -38,6 +37,7 @@ const AdminProduct = () => {
     image: "",
     type: "",
     countInStock: "",
+    newType: "",
   });
   const [stateProductDetails, setStateProductDetails] = useState({
     name: "",
@@ -114,6 +114,11 @@ const AdminProduct = () => {
     return res;
   };
 
+  const fetchAllTypeProduct = async () => {
+    const res = await ProductService.getAllTypeProduct();
+    return res;
+  };
+
   const fetchGetDetailsProduct = async (rowSelected) => {
     const res = await ProductService.getDetailsProduct(rowSelected);
     if (res?.data) {
@@ -161,6 +166,13 @@ const AdminProduct = () => {
     queryFn: getAllProducts,
   });
 
+  const typeProduct = useQuery({
+    queryKey: ["type-product"],
+    queryFn: fetchAllTypeProduct,
+  });
+
+  console.log("typeProduct", typeProduct);
+
   const { isLoading: isLoadingProduct, data: products } = queryProduct;
 
   const renderAction = () => {
@@ -180,12 +192,10 @@ const AdminProduct = () => {
 
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
     confirm();
-    // setSearchText(selectedKeys[0]);
-    // setSearchedColumn(dataIndex);
   };
+
   const handleReset = (clearFilters) => {
     clearFilters();
-    // setSearchText('');
   };
 
   const getColumnSearchProps = (dataIndex) => ({
@@ -252,20 +262,6 @@ const AdminProduct = () => {
         setTimeout(() => searchInput.current?.select(), 100);
       }
     },
-    // render: (text) =>
-    //   searchedColumn === dataIndex ? (
-    //     <Highlighter
-    //       highlightStyle={{
-    //         backgroundColor: '#ffc069',
-    //         padding: 0,
-    //       }}
-    //       searchWords={[searchText]}
-    //       autoEscape
-    //       textToHighlight={text ? text.toString() : ''}
-    //     />
-    //   ) : (
-    //     text
-    //   ),
   });
 
   const columns = [
@@ -414,7 +410,16 @@ const AdminProduct = () => {
   };
 
   const onFinish = () => {
-    mutation.mutate(stateProduct, {
+    const params = {
+      name: stateProduct.name,
+      price: stateProduct.price,
+      description: stateProduct.description,
+      rating: stateProduct.rating,
+      image: stateProduct.image,
+      type: stateProduct.type === 'add_type' ? stateProduct.newType : stateProduct.type,
+      countInStock: stateProduct.countInStock
+    };
+    mutation.mutate(params, {
       onSettled: () => {
         queryProduct.refetch();
       },
@@ -473,18 +478,25 @@ const AdminProduct = () => {
   };
 
   const exportProductToExcel = () => {
-    const filterData = dataTable.map(row => ({
+    const filterData = dataTable.map((row) => ({
       name: row.name,
       price: row.price,
       rating: row.rating,
-      type: row.type
+      type: row.type,
     }));
     const worksheet = XLSX.utils.json_to_sheet(filterData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "products");
     XLSX.writeFile(workbook, "products_table.xlsx");
   };
-  
+
+  const handleChangeSelect = (value) => {
+    setStateProduct({
+      ...stateProduct,
+      type: value,
+    });
+  };
+
   return (
     <div>
       <WrapperHeader>Quản lý sản phẩm</WrapperHeader>
@@ -566,12 +578,36 @@ const AdminProduct = () => {
                 },
               ]}
             >
-              <InputComponent
-                value={stateProduct.type}
-                onChange={handleOnchange}
+              <Select
                 name="type"
+                // defaultValue="lucy"
+                // style={{
+                //   width: 120,
+                // }}
+                value={stateProduct.type}
+                onChange={handleChangeSelect}
+                options={renderOptions(typeProduct?.data?.data)}
               />
             </Form.Item>
+            {stateProduct.type === "add_type" && (
+              <Form.Item
+                label="New type"
+                name="new-type"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please input your type",
+                  },
+                ]}
+              >
+                <InputComponent
+                  value={stateProduct.newType}
+                  onChange={handleOnchange}
+                  name="newType"
+                />
+              </Form.Item>
+            )}
+
             {/* countInStock */}
             <Form.Item
               label="Count in stock"

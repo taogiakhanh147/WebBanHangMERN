@@ -7,7 +7,7 @@ export const isJsonString = (data) => {
   return true;
 };
 
-export const getBase64 = (file) => 
+export const getBase64 = (file) =>
   new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -21,6 +21,23 @@ export function getItem(label, key, icon, children, type) {
     icon,
     children,
     label,
-    type
-  }
+    type,
+  };
 }
+
+export const renderOptions = (arr) => {
+  let results = [];
+  if (arr) {
+    results = arr?.map((opt) => {
+      return {
+        value: opt,
+        label: opt,
+      };
+    });
+  }
+  results.push({
+    value: "add_type",
+    label: "Thêm type",
+  });
+  return results
+};
