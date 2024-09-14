@@ -1,6 +1,12 @@
 import axios from "axios";
 import { axiosJWT } from "./UserService";
 
+export const getAllProductAdmin = async (limit, page) => {
+  let res = {};
+  res = await axios.get(`${process.env.REACT_APP_API_URL}/product/getAll?limit=${limit}&page=${page - 1}`);
+  return res.data;
+};
+
 export const getAllProduct = async (search, limit) => {
   let res = {}
   if(search?.length > 0) {
@@ -14,6 +20,7 @@ export const getAllProduct = async (search, limit) => {
   }
   return res.data;
 };
+
 
 export const createProduct = async (data) => {
   const res = await axios.post(

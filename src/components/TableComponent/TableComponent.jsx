@@ -47,7 +47,13 @@ const TableComponent = (props) => {
         </div>
       )}
 
-      <div style={{width: '100%', display: 'flex', justifyContent: "flex-end"}}>
+      <div
+        style={{
+          width: "100%",
+          display: "flex",
+          justifyContent: "flex-end",
+        }}
+      >
         <button
           onClick={handleExportToExcel}
           style={{
@@ -58,11 +64,10 @@ const TableComponent = (props) => {
             padding: "10px",
             fontSize: "12px",
             cursor: "pointer",
-            border: "none"
+            border: "none",
           }}
         >
-          {" "}
-          Export to Excel{" "}
+          Export to Excel
         </button>
       </div>
 
@@ -73,7 +78,6 @@ const TableComponent = (props) => {
         }}
         columns={columns}
         dataSource={data}
-        pagination={{ defaultPageSize: 10, showSizeChanger: true, pageSizeOptions: ['10', '20', '30']}}
         {...props}
       />
     </Loading>

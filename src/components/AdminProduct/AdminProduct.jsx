@@ -21,6 +21,8 @@ import ModalComponent from "../ModalComponent/ModalComponent";
 import * as XLSX from "xlsx";
 
 const AdminProduct = () => {
+  const [currentPage, setCurrentPage] = useState(1); // Quản lý trang hiện tại
+  const limit = 6
   const [isModalOpen, setIsModelOpen] = useState(false);
   const [isModalOpenDelete, setIsModalOpenDelete] = useState(false);
   const [rowSelected, setRowSelected] = useState("");
@@ -109,8 +111,8 @@ const AdminProduct = () => {
     isError: isErrorDeletedMany,
   } = mutationDeletedMany;
 
-  const getAllProducts = async () => {
-    const res = await ProductService.getAllProduct();
+  const getAllProductAdmins = async () => {
+    const res = await ProductService.getAllProductAdmin( limit, currentPage);
     return res;
   };
 
@@ -162,16 +164,20 @@ const AdminProduct = () => {
   };
 
   const queryProduct = useQuery({
-    queryKey: ["products"],
-    queryFn: getAllProducts,
+    queryKey: ["products", currentPage],
+    queryFn: getAllProductAdmins,
+    keepPreviousData: true,
   });
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
 
   const typeProduct = useQuery({
     queryKey: ["type-product"],
     queryFn: fetchAllTypeProduct,
   });
-
-  console.log("typeProduct", typeProduct);
 
   const { isLoading: isLoadingProduct, data: products } = queryProduct;
 
@@ -286,7 +292,6 @@ const AdminProduct = () => {
         },
       ],
       onFilter: (value, record) => {
-        console.log("value", value, record);
         if (value === ">=") {
           return record.price >= 50;
         }
@@ -416,8 +421,11 @@ const AdminProduct = () => {
       description: stateProduct.description,
       rating: stateProduct.rating,
       image: stateProduct.image,
-      type: stateProduct.type === 'add_type' ? stateProduct.newType : stateProduct.type,
-      countInStock: stateProduct.countInStock
+      type:
+        stateProduct.type === "add_type"
+          ? stateProduct.newType
+          : stateProduct.type,
+      countInStock: stateProduct.countInStock,
     };
     mutation.mutate(params, {
       onSettled: () => {
@@ -496,103 +504,274 @@ const AdminProduct = () => {
       type: value,
     });
   };
-
-  return (
-    <div>
-      <WrapperHeader>Quản lý sản phẩm</WrapperHeader>
-      <div style={{ marginTop: "10px" }}>
-        <Button
-          style={{
-            height: "150px",
-            width: "150px",
-            borderRadius: "6px",
-            borderStyle: "dashed",
-          }}
-          onClick={() => setIsModelOpen(true)}
-        >
-          <PlusOutlined style={{ fontSize: "60px" }} />
-        </Button>
-      </div>
-      <div style={{ marginTop: "20px" }}>
-        <TableComponent
-          handleDeleteMany={handleDeleteManyProducts}
-          columns={columns}
-          isLoading={isLoadingProduct}
-          data={dataTable}
-          onRow={(record, rowIndex) => {
-            return {
-              onClick: (event) => {
-                setRowSelected(record._id);
-              },
-            };
-          }}
-          exportToExcel={exportProductToExcel}
-        />
-      </div>
-
-      <ModalComponent
-        forceRender
-        title="Basic Modal"
-        open={isModalOpen}
-        onCancel={handleCancel}
-        footer={null}
-      >
-        <Loading isPending={isPending}>
-          <Form
-            form={form}
-            name="basic"
-            labelCol={{
-              span: 6,
+  
+    return (
+      <div>
+        <WrapperHeader>Quản lý sản phẩm</WrapperHeader>
+        <div style={{ marginTop: "10px" }}>
+          <Button
+            style={{
+              height: "150px",
+              width: "150px",
+              borderRadius: "6px",
+              borderStyle: "dashed",
             }}
-            wrapperCol={{
-              span: 18,
-            }}
-            onFinish={onFinish}
-            autoComplete="on"
+            onClick={() => setIsModelOpen(true)}
           >
-            {/* Name */}
-            <Form.Item
-              label="Name"
-              name="name"
-              rules={[
-                {
-                  required: true,
-                  message: "Please input your name",
+            <PlusOutlined style={{ fontSize: "60px" }} />
+          </Button>
+        </div>
+        <div style={{ marginTop: "20px" }}>
+          <TableComponent
+            handleDeleteMany={handleDeleteManyProducts}
+            columns={columns}
+            isLoading={isLoadingProduct}
+            data={dataTable}
+            onRow={(record, rowIndex) => {
+              return {
+                onClick: (event) => {
+                  setRowSelected(record._id);
                 },
-              ]}
+              };
+            }}
+            pagination={{
+              current: currentPage,
+              pageSize: 6,
+              total: queryProduct.data?.total || 0,
+              onChange: handlePageChange,
+            }}
+            exportToExcel={exportProductToExcel}
+          />
+        </div>
+
+        <ModalComponent
+          forceRender
+          title="Basic Modal"
+          open={isModalOpen}
+          onCancel={handleCancel}
+          footer={null}
+        >
+          <Loading isPending={isPending}>
+            <Form
+              form={form}
+              name="basic"
+              labelCol={{
+                span: 6,
+              }}
+              wrapperCol={{
+                span: 18,
+              }}
+              onFinish={onFinish}
+              autoComplete="on"
             >
-              <InputComponent
-                value={stateProduct.name}
-                onChange={handleOnchange}
-                name="name"
-              />
-            </Form.Item>
-            {/* type */}
-            <Form.Item
-              label="Type"
-              name="type"
-              rules={[
-                {
-                  required: true,
-                  message: "Please input your type",
-                },
-              ]}
-            >
-              <Select
-                name="type"
-                // defaultValue="lucy"
-                // style={{
-                //   width: 120,
-                // }}
-                value={stateProduct.type}
-                onChange={handleChangeSelect}
-                options={renderOptions(typeProduct?.data?.data)}
-              />
-            </Form.Item>
-            {stateProduct.type === "add_type" && (
+              {/* Name */}
               <Form.Item
-                label="New type"
-                name="new-type"
+                label="Name"
+                name="name"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please input your name",
+                  },
+                ]}
+              >
+                <InputComponent
+                  value={stateProduct.name}
+                  onChange={handleOnchange}
+                  name="name"
+                />
+              </Form.Item>
+              {/* type */}
+              <Form.Item
+                label="Type"
+                name="type"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please input your type",
+                  },
+                ]}
+              >
+                <Select
+                  name="type"
+                  // defaultValue="lucy"
+                  // style={{
+                  //   width: 120,
+                  // }}
+                  value={stateProduct.type}
+                  onChange={handleChangeSelect}
+                  options={renderOptions(typeProduct?.data?.data)}
+                />
+              </Form.Item>
+              {stateProduct.type === "add_type" && (
+                <Form.Item
+                  label="New type"
+                  name="new-type"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Please input your type",
+                    },
+                  ]}
+                >
+                  <InputComponent
+                    value={stateProduct.newType}
+                    onChange={handleOnchange}
+                    name="newType"
+                  />
+                </Form.Item>
+              )}
+
+              {/* countInStock */}
+              <Form.Item
+                label="Count in stock"
+                name="countInStock"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please input your count in stock",
+                  },
+                ]}
+              >
+                <InputComponent
+                  value={stateProduct.countInStock}
+                  onChange={handleOnchange}
+                  name="countInStock"
+                />
+              </Form.Item>
+              {/* price */}
+              <Form.Item
+                label="Price"
+                name="price"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please input your price",
+                  },
+                ]}
+              >
+                <InputComponent
+                  value={stateProduct.price}
+                  onChange={handleOnchange}
+                  name="price"
+                />
+              </Form.Item>
+              {/* description */}
+              <Form.Item
+                label="Description"
+                name="description"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please input your description",
+                  },
+                ]}
+              >
+                <InputComponent
+                  value={stateProduct.description}
+                  onChange={handleOnchange}
+                  name="description"
+                />
+              </Form.Item>
+              {/* rating */}
+              <Form.Item
+                label="Rating"
+                name="rating"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please input your rating",
+                  },
+                ]}
+              >
+                <InputComponent
+                  value={stateProduct.rating}
+                  onChange={handleOnchange}
+                  name="rating"
+                />
+              </Form.Item>
+              {/* image */}
+              <Form.Item
+                label="Image"
+                name="image"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please input your image",
+                  },
+                ]}
+              >
+                <WrapperUploadFile onChange={handleOnChangeAvatar} maxCount={1}>
+                  <Button>Select file</Button>
+                  {stateProduct?.image && (
+                    <img
+                      src={stateProduct?.image}
+                      style={{
+                        height: "60px",
+                        width: "60px",
+                        borderRadius: "50%",
+                        objectFit: "cover",
+                        marginLeft: "10px",
+                      }}
+                      alt="avatar"
+                    />
+                  )}
+                </WrapperUploadFile>
+              </Form.Item>
+              <Form.Item
+                wrapperCol={{
+                  offset: 20,
+                  span: 16,
+                }}
+              >
+                <Button type="primary" htmlType="submit">
+                  Submit
+                </Button>
+              </Form.Item>
+            </Form>
+          </Loading>
+        </ModalComponent>
+
+        <DrawerComponent
+          title="Chi tiết sản phẩm"
+          isOpen={isOpenDrawer}
+          onClose={() => setIsOpenDrawer(false)}
+          width="90%"
+        >
+          <Loading isPending={isPendingUpdate || isPendingUpdated}>
+            <Form
+              name="basic"
+              labelCol={{
+                span: 6,
+              }}
+              wrapperCol={{
+                span: 18,
+              }}
+              onFinish={onUpdateProduct}
+              autoComplete="on"
+              form={form}
+            >
+              {/* Name */}
+              <Form.Item
+                label="Name"
+                name="name"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please input your name",
+                  },
+                ]}
+              >
+                <InputComponent
+                  value={stateProductDetails.name}
+                  onChange={handleOnchangeDetails}
+                  name="name"
+                />
+              </Form.Item>
+              {/* type */}
+              <Form.Item
+                label="Type"
+                name="type"
                 rules={[
                   {
                     required: true,
@@ -601,301 +780,136 @@ const AdminProduct = () => {
                 ]}
               >
                 <InputComponent
-                  value={stateProduct.newType}
-                  onChange={handleOnchange}
-                  name="newType"
+                  value={stateProductDetails.type}
+                  onChange={handleOnchangeDetails}
+                  name="type"
                 />
               </Form.Item>
-            )}
-
-            {/* countInStock */}
-            <Form.Item
-              label="Count in stock"
-              name="countInStock"
-              rules={[
-                {
-                  required: true,
-                  message: "Please input your count in stock",
-                },
-              ]}
-            >
-              <InputComponent
-                value={stateProduct.countInStock}
-                onChange={handleOnchange}
+              {/* countInStock */}
+              <Form.Item
+                label="Count in stock"
                 name="countInStock"
-              />
-            </Form.Item>
-            {/* price */}
-            <Form.Item
-              label="Price"
-              name="price"
-              rules={[
-                {
-                  required: true,
-                  message: "Please input your price",
-                },
-              ]}
-            >
-              <InputComponent
-                value={stateProduct.price}
-                onChange={handleOnchange}
-                name="price"
-              />
-            </Form.Item>
-            {/* description */}
-            <Form.Item
-              label="Description"
-              name="description"
-              rules={[
-                {
-                  required: true,
-                  message: "Please input your description",
-                },
-              ]}
-            >
-              <InputComponent
-                value={stateProduct.description}
-                onChange={handleOnchange}
-                name="description"
-              />
-            </Form.Item>
-            {/* rating */}
-            <Form.Item
-              label="Rating"
-              name="rating"
-              rules={[
-                {
-                  required: true,
-                  message: "Please input your rating",
-                },
-              ]}
-            >
-              <InputComponent
-                value={stateProduct.rating}
-                onChange={handleOnchange}
-                name="rating"
-              />
-            </Form.Item>
-            {/* image */}
-            <Form.Item
-              label="Image"
-              name="image"
-              rules={[
-                {
-                  required: true,
-                  message: "Please input your image",
-                },
-              ]}
-            >
-              <WrapperUploadFile onChange={handleOnChangeAvatar} maxCount={1}>
-                <Button>Select file</Button>
-                {stateProduct?.image && (
-                  <img
-                    src={stateProduct?.image}
-                    style={{
-                      height: "60px",
-                      width: "60px",
-                      borderRadius: "50%",
-                      objectFit: "cover",
-                      marginLeft: "10px",
-                    }}
-                    alt="avatar"
-                  />
-                )}
-              </WrapperUploadFile>
-            </Form.Item>
-            <Form.Item
-              wrapperCol={{
-                offset: 20,
-                span: 16,
-              }}
-            >
-              <Button type="primary" htmlType="submit">
-                Submit
-              </Button>
-            </Form.Item>
-          </Form>
-        </Loading>
-      </ModalComponent>
-
-      <DrawerComponent
-        title="Chi tiết sản phẩm"
-        isOpen={isOpenDrawer}
-        onClose={() => setIsOpenDrawer(false)}
-        width="90%"
-      >
-        <Loading isPending={isPendingUpdate || isPendingUpdated}>
-          <Form
-            name="basic"
-            labelCol={{
-              span: 6,
-            }}
-            wrapperCol={{
-              span: 18,
-            }}
-            onFinish={onUpdateProduct}
-            autoComplete="on"
-            form={form}
-          >
-            {/* Name */}
-            <Form.Item
-              label="Name"
-              name="name"
-              rules={[
-                {
-                  required: true,
-                  message: "Please input your name",
-                },
-              ]}
-            >
-              <InputComponent
-                value={stateProductDetails.name}
-                onChange={handleOnchangeDetails}
-                name="name"
-              />
-            </Form.Item>
-            {/* type */}
-            <Form.Item
-              label="Type"
-              name="type"
-              rules={[
-                {
-                  required: true,
-                  message: "Please input your type",
-                },
-              ]}
-            >
-              <InputComponent
-                value={stateProductDetails.type}
-                onChange={handleOnchangeDetails}
-                name="type"
-              />
-            </Form.Item>
-            {/* countInStock */}
-            <Form.Item
-              label="Count in stock"
-              name="countInStock"
-              rules={[
-                {
-                  required: true,
-                  message: "Please input your count in stock",
-                },
-              ]}
-            >
-              <InputComponent
-                value={stateProductDetails.countInStock}
-                onChange={handleOnchangeDetails}
-                name="countInStock"
-              />
-            </Form.Item>
-            {/* price */}
-            <Form.Item
-              label="Price"
-              name="price"
-              rules={[
-                {
-                  required: true,
-                  message: "Please input your price",
-                },
-              ]}
-            >
-              <InputComponent
-                value={stateProductDetails.price}
-                onChange={handleOnchangeDetails}
-                name="price"
-              />
-            </Form.Item>
-            {/* description */}
-            <Form.Item
-              label="Description"
-              name="description"
-              rules={[
-                {
-                  required: true,
-                  message: "Please input your description",
-                },
-              ]}
-            >
-              <InputComponent
-                value={stateProductDetails.description}
-                onChange={handleOnchangeDetails}
-                name="description"
-              />
-            </Form.Item>
-            {/* rating */}
-            <Form.Item
-              label="Rating"
-              name="rating"
-              rules={[
-                {
-                  required: true,
-                  message: "Please input your rating",
-                },
-              ]}
-            >
-              <InputComponent
-                value={stateProductDetails.rating}
-                onChange={handleOnchangeDetails}
-                name="rating"
-              />
-            </Form.Item>
-            {/* image */}
-            <Form.Item
-              label="Image"
-              name="image"
-              rules={[
-                {
-                  required: true,
-                  message: "Please input your image",
-                },
-              ]}
-            >
-              <WrapperUploadFile
-                onChange={handleOnChangeAvatarDetails}
-                maxCount={1}
+                rules={[
+                  {
+                    required: true,
+                    message: "Please input your count in stock",
+                  },
+                ]}
               >
-                <Button>Select file</Button>
-                {stateProductDetails?.image && (
-                  <img
-                    src={stateProductDetails?.image}
-                    style={{
-                      height: "60px",
-                      width: "60px",
-                      borderRadius: "50%",
-                      objectFit: "cover",
-                      marginLeft: "10px",
-                    }}
-                    alt="avatar"
-                  />
-                )}
-              </WrapperUploadFile>
-            </Form.Item>
-            <Form.Item
-              wrapperCol={{
-                offset: 20,
-                span: 16,
-              }}
-            >
-              <Button type="primary" htmlType="submit">
-                Apply
-              </Button>
-            </Form.Item>
-          </Form>
-        </Loading>
-      </DrawerComponent>
+                <InputComponent
+                  value={stateProductDetails.countInStock}
+                  onChange={handleOnchangeDetails}
+                  name="countInStock"
+                />
+              </Form.Item>
+              {/* price */}
+              <Form.Item
+                label="Price"
+                name="price"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please input your price",
+                  },
+                ]}
+              >
+                <InputComponent
+                  value={stateProductDetails.price}
+                  onChange={handleOnchangeDetails}
+                  name="price"
+                />
+              </Form.Item>
+              {/* description */}
+              <Form.Item
+                label="Description"
+                name="description"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please input your description",
+                  },
+                ]}
+              >
+                <InputComponent
+                  value={stateProductDetails.description}
+                  onChange={handleOnchangeDetails}
+                  name="description"
+                />
+              </Form.Item>
+              {/* rating */}
+              <Form.Item
+                label="Rating"
+                name="rating"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please input your rating",
+                  },
+                ]}
+              >
+                <InputComponent
+                  value={stateProductDetails.rating}
+                  onChange={handleOnchangeDetails}
+                  name="rating"
+                />
+              </Form.Item>
+              {/* image */}
+              <Form.Item
+                label="Image"
+                name="image"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please input your image",
+                  },
+                ]}
+              >
+                <WrapperUploadFile
+                  onChange={handleOnChangeAvatarDetails}
+                  maxCount={1}
+                >
+                  <Button>Select file</Button>
+                  {stateProductDetails?.image && (
+                    <img
+                      src={stateProductDetails?.image}
+                      style={{
+                        height: "60px",
+                        width: "60px",
+                        borderRadius: "50%",
+                        objectFit: "cover",
+                        marginLeft: "10px",
+                      }}
+                      alt="avatar"
+                    />
+                  )}
+                </WrapperUploadFile>
+              </Form.Item>
+              <Form.Item
+                wrapperCol={{
+                  offset: 20,
+                  span: 16,
+                }}
+              >
+                <Button type="primary" htmlType="submit">
+                  Apply
+                </Button>
+              </Form.Item>
+            </Form>
+          </Loading>
+        </DrawerComponent>
 
-      <ModalComponent
-        title="Xóa sản phẩm"
-        open={isModalOpenDelete}
-        onCancel={handleCancelDelete}
-        onOk={handleDeleteProduct}
-      >
-        <Loading isPending={isPendingDeleted}>
-          <div>Bạn có chắc xóa sản phẩm này không!</div>
-        </Loading>
-      </ModalComponent>
-    </div>
-  );
-};
+        <ModalComponent
+          title="Xóa sản phẩm"
+          open={isModalOpenDelete}
+          onCancel={handleCancelDelete}
+          onOk={handleDeleteProduct}
+        >
+          <Loading isPending={isPendingDeleted}>
+            <div>Bạn có chắc xóa sản phẩm này không!</div>
+          </Loading>
+        </ModalComponent>
+      </div>
+    );
+  };
 
-export default AdminProduct;
+  export default AdminProduct;
