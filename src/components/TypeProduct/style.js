@@ -7,4 +7,5 @@ export const WrapperTypeProductText = styled.div`
   color: rgb(128, 128, 137);
   white-space: nowrap;
   padding: 0 10px;
+  cursor: pointer;
 `;
