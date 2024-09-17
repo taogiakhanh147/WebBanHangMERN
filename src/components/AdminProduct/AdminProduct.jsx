@@ -40,6 +40,7 @@ const AdminProduct = () => {
     type: "",
     countInStock: "",
     newType: "",
+    discount: "",
   });
   const [stateProductDetails, setStateProductDetails] = useState({
     name: "",
@@ -49,6 +50,7 @@ const AdminProduct = () => {
     image: "",
     type: "",
     countInStock: "",
+    discount: "",
   });
 
   const [form] = Form.useForm();
@@ -56,7 +58,7 @@ const AdminProduct = () => {
   const user = useSelector((state) => state?.user);
 
   const mutation = useMutationHooks((data) => {
-    const { name, price, description, rating, image, type, countInStock } =
+    const { name, price, description, rating, image, type, countInStock, discount } =
       data;
     const res = ProductService.createProduct({
       name,
@@ -66,6 +68,7 @@ const AdminProduct = () => {
       image,
       type,
       countInStock,
+      discount
     });
     return res;
   });
@@ -132,6 +135,7 @@ const AdminProduct = () => {
         image: res?.data.image,
         type: res?.data.type,
         countInStock: res?.data.countInStock,
+        discount: res?.data.discount,
       });
     }
     setIsPendingUpdate(false);
@@ -410,6 +414,7 @@ const AdminProduct = () => {
       image: "",
       type: "",
       countInStock: "",
+      discount: "",
     });
     form.resetFields();
   };
@@ -426,6 +431,7 @@ const AdminProduct = () => {
           ? stateProduct.newType
           : stateProduct.type,
       countInStock: stateProduct.countInStock,
+      discount: stateProduct.discount,
     };
     mutation.mutate(params, {
       onSettled: () => {
@@ -546,7 +552,7 @@ const AdminProduct = () => {
 
         <ModalComponent
           forceRender
-          title="Basic Modal"
+          title="Thêm sản phẩm"
           open={isModalOpen}
           onCancel={handleCancel}
           footer={null}
@@ -688,6 +694,23 @@ const AdminProduct = () => {
                   value={stateProduct.rating}
                   onChange={handleOnchange}
                   name="rating"
+                />
+              </Form.Item>
+              {/* discount */}
+              <Form.Item
+                label="Discount"
+                name="discount"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please input your discount",
+                  },
+                ]}
+              >
+                <InputComponent
+                  value={stateProduct.discount}
+                  onChange={handleOnchange}
+                  name="discount"
                 />
               </Form.Item>
               {/* image */}
@@ -851,6 +874,23 @@ const AdminProduct = () => {
                   value={stateProductDetails.rating}
                   onChange={handleOnchangeDetails}
                   name="rating"
+                />
+              </Form.Item>
+              {/* discount */}
+              <Form.Item
+                label="Discount"
+                name="discount"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please input your discount",
+                  },
+                ]}
+              >
+                <InputComponent
+                  value={stateProductDetails.discount}
+                  onChange={handleOnchangeDetails}
+                  name="discount"
                 />
               </Form.Item>
               {/* image */}

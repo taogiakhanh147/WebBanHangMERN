@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   WrapperCountOrder,
   WrapperInfo,
@@ -26,6 +26,7 @@ import {
   removeAllOrderProduct,
 } from "../../redux/slides/orderSlide";
 import ButtonComponent from "../../components/ButtonComponent/ButtonComponent";
+import { convertPrice } from "../../utils";
 
 const OrderPage = () => {
   const order = useSelector((state) => state.order);
@@ -66,6 +67,38 @@ const OrderPage = () => {
   const handleDeleteOrder = (idProduct) => {
     dispatch(removeOrderProduct({ idProduct }));
   };
+
+  const priceMemo = useMemo(() => {
+    const result = order?.orderItems.reduce((total, cur) => {
+      return total + (cur.price * cur.amount)
+    }, 0)
+    console.log("result/price", result);
+    return result
+  }, [order])
+
+  const priceDiscountMemo = useMemo(() => {
+    const result = order?.orderItems.reduce((total, cur) => {
+      return total + (cur.discount * cur.amount)
+    }, 0)
+    console.log("result/discount", result);
+    if(Number(result))
+    {
+      return result
+    }
+    return 0
+  }, [order])
+
+  const DeliveryPriceMemo = useMemo(() => {
+    if(priceMemo > 100000) {
+      return 10000
+    } else {
+      return 200000
+    }
+  }, [priceMemo])
+
+  const totalPriceMemo = useMemo(() => {
+    return Number(priceMemo) - Number(priceDiscountMemo) + Number(DeliveryPriceMemo)
+  }, [priceMemo, priceDiscountMemo, DeliveryPriceMemo])
 
   const handleRemoveAllProduct = () => {
     if (listChecked?.length >= 1) {
@@ -151,7 +184,7 @@ const OrderPage = () => {
                     >
                       <span>
                         <span style={{ fontSize: "13px", color: "#242424" }}>
-                          {order?.price}
+                          {convertPrice(order?.price)}
                         </span>
                       </span>
                       <WrapperCountOrder>
@@ -196,7 +229,7 @@ const OrderPage = () => {
                           fontWeight: 500,
                         }}
                       >
-                        {order?.price * order?.amount}
+                        {convertPrice(order?.price * order?.amount)}
                       </span>
                       <DeleteOutlined
                         style={{ cursor: "pointer" }}
@@ -226,7 +259,7 @@ const OrderPage = () => {
                       fontWeight: "bold",
                     }}
                   >
-                    abc
+                    {convertPrice(priceMemo)}
                   </span>
                 </div>
                 <div
@@ -244,25 +277,7 @@ const OrderPage = () => {
                       fontWeight: "bold",
                     }}
                   >
-                    0
-                  </span>
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <span>Thuế</span>
-                  <span
-                    style={{
-                      color: "#000",
-                      fontSize: "14px",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    0
+                    {`${priceDiscountMemo} %`}
                   </span>
                 </div>
                 <div
@@ -280,7 +295,7 @@ const OrderPage = () => {
                       fontWeight: "bold",
                     }}
                   >
-                    0
+                    {convertPrice(DeliveryPriceMemo)}
                   </span>
                 </div>
               </WrapperInfo>
@@ -295,7 +310,7 @@ const OrderPage = () => {
                       fontWeight: "bold",
                     }}
                   >
-                    01123
+                    {convertPrice(totalPriceMemo)}
                   </span>
                   <span style={{ color: "#000", fontSize: "11px" }}>
                     (Đã bao gòm VAT nếu có)

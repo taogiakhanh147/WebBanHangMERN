@@ -23,7 +23,7 @@ const HomePage = () => {
   const searchProduct = useSelector((state) => state?.product?.search);
   const searchDebounce = useDebounce(searchProduct, 500);
   const [pending, setPending] = useState(false);
-  const [limit, setLimit] = useState(6);
+  const [limit, setLimit] = useState(5);
   const  [typeProducts, setTypeProducts] = useState([])
 
   const fetchProductAll = async (context) => {
@@ -105,7 +105,7 @@ const HomePage = () => {
                 marginTop: "20px",
                 display: "flex",
                 alignItems: "center",
-                gap: "30px",
+                gap: "50px",
                 flexWrap: "wrap",
                 marginTop: "16px",
                 padding: "20px",
@@ -153,7 +153,7 @@ const HomePage = () => {
               fontWeight: 500,
               color: products?.total === products?.data.length && "#fff",
             }}
-            onClick={() => setLimit((prev) => prev + 6)}
+            onClick={() => setLimit((prev) => prev + 5)}
           />
           </div>
         </div>

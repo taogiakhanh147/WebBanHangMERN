@@ -23,13 +23,14 @@ import Loading from "../LoadingComponent/Loading";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import { addOrderProduct } from "../../redux/slides/orderSlide";
+import { convertPrice } from "../../utils";
 
 const ProductDetailComponent = ({ idProduct }) => {
   const [numProduct, setNumProduct] = useState(1);
-  const user = useSelector((state) => state.user)
-  const navigate = useNavigate()
-  const location = useLocation()
-  const dispatch = useDispatch()
+  const user = useSelector((state) => state.user);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const dispatch = useDispatch();
 
   const onChange = (value) => {
     setNumProduct(Number(value));
@@ -43,45 +44,46 @@ const ProductDetailComponent = ({ idProduct }) => {
     }
   };
 
-  
   const { isPending, data: productDetails } = useQuery({
     queryKey: ["product-details", idProduct],
     queryFn: fetchGetDetailsProduct,
     enabled: !!idProduct,
   });
-  
+
   const handleAddOrderProduct = () => {
-    if(!user?.id){
-      navigate('/sign-in', {state: location?.pathname})
+    if (!user?.id) {
+      navigate("/sign-in", { state: location?.pathname });
     } else {
-    //   {
-    //     name: {type: String, required: true},
-    //     amount: {type: Number, required: true},
-    //     image: {type: String, required: true},
-    //     price: {type: Number, required: true},
-    //     product: {
-    //         type: mongoose.Schema.Types.ObjectId,
-    //         ref: 'Product',
-    //         required: true,
-    //     },
-    // },
-      dispatch(addOrderProduct({
-        orderItem: {
-          name: productDetails?.name,
-          amount: numProduct,
-          image: productDetails?.image,
-          price: productDetails?.price,
-          product: productDetails?._id
-        }
-      }))
+      //   {
+      //     name: {type: String, required: true},
+      //     amount: {type: Number, required: true},
+      //     image: {type: String, required: true},
+      //     price: {type: Number, required: true},
+      //     product: {
+      //         type: mongoose.Schema.Types.ObjectId,
+      //         ref: 'Product',
+      //         required: true,
+      //     },
+      // },
+      dispatch(
+        addOrderProduct({
+          orderItem: {
+            name: productDetails?.name,
+            amount: numProduct,
+            image: productDetails?.image,
+            price: productDetails?.price,
+            product: productDetails?._id,
+          },
+        })
+      );
     }
-  }
+  };
 
   const handleChangeCount = (type) => {
     if (type === "increase") {
       setNumProduct(numProduct + 1);
     } else if (type === "decrease") {
-      if(numProduct > 0) {
+      if (numProduct > 0) {
         setNumProduct(numProduct - 1);
       }
     }
@@ -135,12 +137,16 @@ const ProductDetailComponent = ({ idProduct }) => {
             {productDetails?.name}
           </WrapperStyleNameProduct>
           <div>
-            <Rate allowHalf defaultValue={productDetails?.rating} value={productDetails?.rating} />
+            <Rate
+              allowHalf
+              defaultValue={productDetails?.rating}
+              value={productDetails?.rating}
+            />
             <WrapperStyleTextSell> | Đã bán 34</WrapperStyleTextSell>
           </div>
           <WrapperPriceProduct>
             <WrapperPriceTextProduct>
-              {productDetails?.price.toLocaleString()}đ
+              {convertPrice(productDetails?.price)}
             </WrapperPriceTextProduct>
           </WrapperPriceProduct>
           <WrapperAddressProduct>
@@ -159,7 +165,11 @@ const ProductDetailComponent = ({ idProduct }) => {
             <div style={{ marginBottom: `10px` }}>Số lượng</div>
             <WrapperQualityProduct>
               <button
-                style={{ border: "none", background: "transparent", cursor: "pointer" }}
+                style={{
+                  border: "none",
+                  background: "transparent",
+                  cursor: "pointer",
+                }}
                 onClick={() => handleChangeCount("decrease")}
               >
                 <MinusOutlined style={{ color: "#000", fontSize: "20px" }} />
@@ -170,7 +180,11 @@ const ProductDetailComponent = ({ idProduct }) => {
                 value={numProduct}
               />
               <button
-                style={{ border: "none", background: "transparent", cursor: "pointer" }}
+                style={{
+                  border: "none",
+                  background: "transparent",
+                  cursor: "pointer",
+                }}
                 onClick={() => handleChangeCount("increase")}
               >
                 <PlusOutlined style={{ color: "#000", fontSize: "20px" }} />
