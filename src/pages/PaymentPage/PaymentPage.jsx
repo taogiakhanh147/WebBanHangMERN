@@ -20,8 +20,10 @@ import * as OrderService from "../../services/OrderService";
 import * as message from "../../components/Message/Message";
 import Loading from "../../components/LoadingComponent/Loading";
 import { updateUser } from "../../redux/slides/userSlide";
+import { useNavigate } from "react-router-dom";
 
 const PaymentPage = () => {
+  const navigate = useNavigate()
   const [delivery, setDelivery] = useState("fast");
   const [payment, setPayment] = useState("later_money");
   const order = useSelector((state) => state.order);
@@ -122,11 +124,6 @@ const PaymentPage = () => {
           shippingPrice: DeliveryPriceMemo,
           totalPrice: totalPriceMemo,
           user: user?.id,
-        },
-        {
-          onSuccess: () => {
-            message.success("Đặt hàng thành công");
-          },
         }
       );
     }
@@ -145,7 +142,28 @@ const PaymentPage = () => {
   });
 
   const { isPending, data } = mutationUpdate;
-  const { isPending: isPendingAddOrder } = mutationAddOrder;
+  const { data: dataAdd, isPending: isPendingAddOrder, isSuccess, isError } = mutationAddOrder;
+
+  useEffect(() => {
+    if(isSuccess && dataAdd?.status === 'OK') {
+      const arrayOrdered = []
+      order?.orderItemsSelected?.foreach(element => {
+        arrayOrdered.push(element.product)
+      })
+      dispatch(removeAllOrderProduct({listChecked: arrayOrdered}))
+      message.success("Đặt hàng thành công")
+      navigate('/orderSuccess', {
+        state: {
+          delivery,
+          payment,
+          orders: order?.orderItemsSelected,
+          totalPriceMemo: totalPriceMemo
+        }
+      }) 
+    } else if(isError){
+      message.error()
+    }
+  }, [isSuccess, isError])
 
   const handleCancelUpdate = () => {
     setStateUserDetails({

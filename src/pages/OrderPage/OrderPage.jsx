@@ -8,6 +8,7 @@ import {
   WrapperRight,
   WrapperStyleHeader,
   WrapperTotal,
+  WrapperStyleHeaderDelivery,
 } from "./style";
 import { Checkbox, Form } from "antd";
 import { PlusOutlined, DeleteOutlined, MinusOutlined } from "@ant-design/icons";
@@ -30,9 +31,10 @@ import * as message from "../../components/Message/Message";
 import Loading from "../../components/LoadingComponent/Loading";
 import { updateUser } from "../../redux/slides/userSlide";
 import { useNavigate } from "react-router-dom";
+import StepComponent from "../../components/StepComponent/StepComponent";
 
 const OrderPage = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const order = useSelector((state) => state.order);
   const user = useSelector((state) => state.user);
   const [listChecked, setListChecked] = useState([]);
@@ -104,8 +106,8 @@ const OrderPage = () => {
   };
 
   const handleChangeAddress = () => {
-    setIsOpenModalUpdateInfo(true)
-  }
+    setIsOpenModalUpdateInfo(true);
+  };
 
   const priceMemo = useMemo(() => {
     const result = order?.orderItemsSelected.reduce((total, cur) => {
@@ -124,21 +126,23 @@ const OrderPage = () => {
     return 0;
   }, [order]);
 
-  const DeliveryPriceMemo = useMemo(() => {
-    if (priceMemo > 100000) {
-      return 10000;
-    } else if (priceMemo === 0) {
+  const deliveryPriceMemo = useMemo(() => {
+    if(order?.orderItemsSelected.length === 0 || priceMemo > 500000) {
       return 0;
-    } else {
-      return 200000;
+    }
+    else if(priceMemo < 200000) {
+      return 20000;
+    }
+    else if (priceMemo > 200000 && priceMemo <= 500000) {
+      return 10000;
     }
   }, [priceMemo]);
 
   const totalPriceMemo = useMemo(() => {
     return (
-      Number(priceMemo) - Number(priceDiscountMemo) + Number(DeliveryPriceMemo)
+      Number(priceMemo) - Number(priceDiscountMemo) + Number(deliveryPriceMemo)
     );
-  }, [priceMemo, priceDiscountMemo, DeliveryPriceMemo]);
+  }, [priceMemo, priceDiscountMemo, deliveryPriceMemo]);
 
   const handleRemoveAllProduct = () => {
     if (listChecked?.length >= 1) {
@@ -152,7 +156,7 @@ const OrderPage = () => {
     } else if (!user.address || !user.phone || !user.name || !user.city) {
       setIsOpenModalUpdateInfo(true);
     } else {
-      navigate('/payment')
+      navigate("/payment");
     }
   };
 
@@ -201,12 +205,35 @@ const OrderPage = () => {
     });
   };
 
+  const itemsDelivery = [
+    {
+      title: "20.000 VND",
+      description: "Dưới 200.000 VND",
+    },
+    {
+      title: "10.000 VND",
+      description: "Từ 200.000 VND đến dưới 500.000 VND",
+    },
+    {
+      title: "0 VND",
+      description: "Trên 500.000 VND",
+    },
+  ];
+
   return (
     <div style={{ background: "#f5f5f5", width: "100%", height: "100vh" }}>
       <div style={{ height: "100%", width: "1270px", margin: "0 auto" }}>
         <h3>Giỏ hàng</h3>
         <div style={{ display: "flex", justifyContent: "center" }}>
           <WrapperLeft>
+            <WrapperStyleHeaderDelivery>
+              <StepComponent
+                items={itemsDelivery}
+                current={
+                  order?.orderItemsSelected.length === 0 ? 3 : deliveryPriceMemo === 20000 ? 0 : deliveryPriceMemo === 10000 ? 1 : 2
+                }
+              />
+            </WrapperStyleHeaderDelivery>
             <WrapperStyleHeader>
               <span style={{ display: "inline-block", width: "390px" }}>
                 <Checkbox
@@ -338,9 +365,16 @@ const OrderPage = () => {
           <WrapperRight>
             <div style={{ width: "100%" }}>
               <WrapperInfo>
-                <span style={{fontSize: "13px"}}>Địa chỉ: </span>
-                <span style={{fontWeight: 'bold', fontSize: "13px"}}>{`${user?.address} ${user?.city}`}</span>
-                <span onClick={handleChangeAddress} style={{color: 'blue', cursor: 'pointer', fontSize: "13px"}}>Thay đổi</span>
+                <span style={{ fontSize: "13px" }}>Địa chỉ: </span>
+                <span
+                  style={{ fontWeight: "bold", fontSize: "13px" }}
+                >{`${user?.address} ${user?.city}`}</span>
+                <span
+                  onClick={handleChangeAddress}
+                  style={{ color: "blue", cursor: "pointer", fontSize: "13px" }}
+                >
+                  Thay đổi
+                </span>
               </WrapperInfo>
               <WrapperInfo>
                 <div
@@ -350,7 +384,7 @@ const OrderPage = () => {
                     justifyContent: "space-between",
                   }}
                 >
-                  <span style={{fontSize: '13px'}}>Tạm tính</span>
+                  <span style={{ fontSize: "13px" }}>Tạm tính</span>
                   <span
                     style={{
                       color: "#000",
@@ -368,7 +402,7 @@ const OrderPage = () => {
                     justifyContent: "space-between",
                   }}
                 >
-                  <span style={{fontSize: '13px'}}>Giảm giá</span>
+                  <span style={{ fontSize: "13px" }}>Giảm giá</span>
                   <span
                     style={{
                       color: "#000",
@@ -386,7 +420,7 @@ const OrderPage = () => {
                     justifyContent: "space-between",
                   }}
                 >
-                  <span style={{fontSize: '13px'}}>Phí giao hàng</span>
+                  <span style={{ fontSize: "13px" }}>Phí giao hàng</span>
                   <span
                     style={{
                       color: "#000",
@@ -394,13 +428,13 @@ const OrderPage = () => {
                       fontWeight: "bold",
                     }}
                   >
-                    {convertPrice(DeliveryPriceMemo)}
+                    {convertPrice(deliveryPriceMemo)}
                   </span>
                 </div>
               </WrapperInfo>
 
               <WrapperTotal>
-                <span style={{fontSize: '13px'}}>Tổng tiền</span>
+                <span style={{ fontSize: "13px" }}>Tổng tiền</span>
                 <span style={{ display: "flex", flexDirection: "column" }}>
                   <span
                     style={{
