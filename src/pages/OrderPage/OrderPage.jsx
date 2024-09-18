@@ -9,7 +9,7 @@ import {
   WrapperStyleHeader,
   WrapperTotal,
 } from "./style";
-import {  Checkbox, Form } from "antd";
+import { Checkbox, Form } from "antd";
 import { PlusOutlined, DeleteOutlined, MinusOutlined } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
 import { WrapperInputNumber } from "../../components/ProductDetailComponent/style";
@@ -29,8 +29,10 @@ import * as UserService from "../../services/UserService";
 import * as message from "../../components/Message/Message";
 import Loading from "../../components/LoadingComponent/Loading";
 import { updateUser } from "../../redux/slides/userSlide";
+import { useNavigate } from "react-router-dom";
 
 const OrderPage = () => {
+  const navigate = useNavigate()
   const order = useSelector((state) => state.order);
   const user = useSelector((state) => state.user);
   const [listChecked, setListChecked] = useState([]);
@@ -86,20 +88,24 @@ const OrderPage = () => {
   }, [form, stateUserDetails]);
 
   useEffect(() => {
-    if(isOpenModalUpdateInfo) {
+    if (isOpenModalUpdateInfo) {
       setStateUserDetails({
         ...stateUserDetails,
         name: user?.name,
         address: user?.address,
         phone: user?.phone,
-        city: user?.city
-      })
+        city: user?.city,
+      });
     }
-  }, [isOpenModalUpdateInfo])
+  }, [isOpenModalUpdateInfo]);
 
   const handleDeleteOrder = (idProduct) => {
     dispatch(removeOrderProduct({ idProduct }));
   };
+
+  const handleChangeAddress = () => {
+    setIsOpenModalUpdateInfo(true)
+  }
 
   const priceMemo = useMemo(() => {
     const result = order?.orderItemsSelected.reduce((total, cur) => {
@@ -143,8 +149,10 @@ const OrderPage = () => {
   const handleAddCard = () => {
     if (!order?.orderItemsSelected?.length) {
       message.error("Vui lòng chọn sản phẩm");
-    } else if (!user.address || !user.phone || !user.name || user.city) {
+    } else if (!user.address || !user.phone || !user.name || !user.city) {
       setIsOpenModalUpdateInfo(true);
+    } else {
+      navigate('/payment')
     }
   };
 
@@ -158,12 +166,12 @@ const OrderPage = () => {
 
   const handleCancelUpdate = () => {
     setStateUserDetails({
-      name: '',
-      email: '',
-      phone: '',
-      isAdmin: false
-    })
-    form.resetFields()
+      name: "",
+      email: "",
+      phone: "",
+      isAdmin: false,
+    });
+    form.resetFields();
     setIsOpenModalUpdateInfo(false);
   };
 
@@ -178,7 +186,7 @@ const OrderPage = () => {
         },
         {
           onSuccess: () => {
-            dispatch(updateUser({name, address, city, phone}))
+            dispatch(updateUser({ name, address, city, phone }));
             setIsOpenModalUpdateInfo(false);
           },
         }
@@ -330,6 +338,11 @@ const OrderPage = () => {
           <WrapperRight>
             <div style={{ width: "100%" }}>
               <WrapperInfo>
+                <span style={{fontSize: "13px"}}>Địa chỉ: </span>
+                <span style={{fontWeight: 'bold', fontSize: "13px"}}>{`${user?.address} ${user?.city}`}</span>
+                <span onClick={handleChangeAddress} style={{color: 'blue', cursor: 'pointer', fontSize: "13px"}}>Thay đổi</span>
+              </WrapperInfo>
+              <WrapperInfo>
                 <div
                   style={{
                     display: "flex",
@@ -337,7 +350,7 @@ const OrderPage = () => {
                     justifyContent: "space-between",
                   }}
                 >
-                  <span>Tạm tính</span>
+                  <span style={{fontSize: '13px'}}>Tạm tính</span>
                   <span
                     style={{
                       color: "#000",
@@ -355,7 +368,7 @@ const OrderPage = () => {
                     justifyContent: "space-between",
                   }}
                 >
-                  <span>Giảm giá</span>
+                  <span style={{fontSize: '13px'}}>Giảm giá</span>
                   <span
                     style={{
                       color: "#000",
@@ -373,7 +386,7 @@ const OrderPage = () => {
                     justifyContent: "space-between",
                   }}
                 >
-                  <span>Phí giao hàng</span>
+                  <span style={{fontSize: '13px'}}>Phí giao hàng</span>
                   <span
                     style={{
                       color: "#000",
@@ -387,7 +400,7 @@ const OrderPage = () => {
               </WrapperInfo>
 
               <WrapperTotal>
-                <span>Tổng tiền</span>
+                <span style={{fontSize: '13px'}}>Tổng tiền</span>
                 <span style={{ display: "flex", flexDirection: "column" }}>
                   <span
                     style={{
