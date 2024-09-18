@@ -1,10 +1,8 @@
-import { Col, Image, InputNumber, Rate, Row } from "antd";
+import { Col, Image, Rate, Row } from "antd";
 import React, { useState } from "react";
-import imageProduct from "../../assets/images/large1.webp";
 import imageProductSmall from "../../assets/images/small1.webp";
 import {
   WrapperAddressProduct,
-  WrapperBtnQualityProduct,
   WrapperInputNumber,
   WrapperPriceProduct,
   WrapperPriceTextProduct,
@@ -14,7 +12,6 @@ import {
   WrapperStyleNameProduct,
   WrapperStyleTextSell,
 } from "./style";
-import { StarFilled } from "@ant-design/icons";
 import ButtonComponent from "../ButtonComponent/ButtonComponent";
 import * as ProductService from "../../services/ProductService";
 import { PlusOutlined, MinusOutlined } from "@ant-design/icons";
@@ -24,7 +21,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import { addOrderProduct } from "../../redux/slides/orderSlide";
 import { convertPrice } from "../../utils";
-
 const ProductDetailComponent = ({ idProduct }) => {
   const [numProduct, setNumProduct] = useState(1);
   const user = useSelector((state) => state.user);
