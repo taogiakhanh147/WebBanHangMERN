@@ -1,105 +1,193 @@
-import React,{ useEffect, useState } from 'react'
-import Loading from '../../components/LoadingComponent/Loading';
-import { useQuery } from '@tanstack/react-query';
-import * as OrderService from '../../services/OrderService'
-import { useSelector } from 'react-redux';
-import { convertPrice } from '../../utils';
-import { WrapperItemOrder, WrapperListOrder, WrapperHeaderItem, WrapperFooterItem, WrapperContainer, WrapperStatus } from './style';
-import ButtonComponent from '../../components/ButtonComponent/ButtonComponent';
+import React, { useEffect, useState } from "react";
+import Loading from "../../components/LoadingComponent/Loading";
+import { useQuery } from "@tanstack/react-query";
+import * as OrderService from "../../services/OrderService";
+import { useSelector } from "react-redux";
+import { convertPrice } from "../../utils";
+import {
+  WrapperItemOrder,
+  WrapperListOrder,
+  WrapperHeaderItem,
+  WrapperFooterItem,
+  WrapperContainer,
+  WrapperStatus,
+} from "./style";
+import ButtonComponent from "../../components/ButtonComponent/ButtonComponent";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useMutationHooks } from "../../hooks/useMutationHook";
+import { message } from "antd";
+
 const MyOrderPage = () => {
-  const user = useSelector((state) => state.user)
+  const location = useLocation();
+  const { state } = location;
+  const navigate = useNavigate()
 
   const fetchMyOrder = async () => {
-    if(user?.id && user?.access_token) {
-      const res = await OrderService.getOrderByUserId(user?.id, user?.access_token)
-      return res.data
-    }
-  }
+    const res = await OrderService.getOrderByUserId(
+      state?.id,
+      state?.token
+    );
+    return res.data;
+  };
 
   const queryOrder = useQuery({
-    queryKey: ['orders'],
+    queryKey: ["orders"],
     queryFn: fetchMyOrder,
-    enabled: !!user?.id && !!user?.access_token,
+    enabled: !!state?.id && !!state?.token,
   });
-  
-  const { isPending, data } = queryOrder
 
-  console.log('data', data)
-  
+  const { isPending, data } = queryOrder;
+
+  const handleDetailsOrder = (id) => {
+    navigate(`/details-order/${id}`, {
+      state: {
+        token: state?.token
+      }
+    })
+  }
+
+  const mutation = useMutationHooks((data) => {
+    const {id, token} = data
+    const res = OrderService.cancelOrder(id, token)
+    return res
+  })
+
+  const handleCancelOrder = (id) => {
+    console.log(id)
+    mutation.mutate({id, token: state?.token}, {
+      onSuccess: () => {
+        queryOrder.refetch()
+      }
+    })
+  }
+
+  const {isPending: isPendingCancel, isSuccess: isSuccessCancel, isError: isErrorCancel, data: dataCancel} = mutation
+
+  useEffect(() => {
+    if(isSuccessCancel && dataCancel?.status === 'OK'){
+      message.success()
+    } else if (isErrorCancel) {
+      message.error()
+    }
+  }, [isErrorCancel, isSuccessCancel])
+
+  const renderProduct = (data) => {
+    return data?.map((order) => {
+      return (
+        <WrapperHeaderItem>
+          <img
+            src={order?.image}
+            style={{
+              width: "70px",
+              height: "70px",
+              objectFit: "cover",
+              border: "1px solid rgb(238, 238, 238)",
+              padding: "2px",
+            }}
+          />
+          <div
+            style={{
+              width: 260,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              marginLeft: "10px",
+            }}
+          >
+            {order?.name}
+          </div>
+          <span
+            style={{ fontSize: "13px", color: "#242424", marginLeft: "auto" }}
+          >
+            {convertPrice(order?.price)}
+          </span>
+        </WrapperHeaderItem>
+      );
+    });
+  };
+
   return (
-    <Loading isPending={isPending}>
+    <Loading isPending={isPending || isPendingCancel}>
       <WrapperContainer>
-        <div style={{height: '100%', width: '1270px', margin: '0 auto'}}>
+        <div style={{ height: "100%", width: "1270px", margin: "0 auto" }}>
           <h4>Đơn hàng của tôi</h4>
           <WrapperListOrder>
-            {data?.orderItems?.map((order) => {
+            {data?.map((order) => {
               return (
                 <WrapperItemOrder key={order?._id}>
                   <WrapperStatus>
-                    <span style={{fontSize: '14px', fontWeight: 'bold'}}>Trạng thái</span>
-                    <div><span style={{color: 'rgb(255, 66, 78)'}}>Giao hàng: </span>{`${order.isDelivered ? 'Đã giao hàng': 'Chưa giao hàng'}`}</div>
-                    <div><span style={{color: 'rgb(255, 66, 78)'}}>Thanh toán:</span>{`${order.isPaid ? 'Đã thanh toán': 'Chưa thanh toán'}`}</div>
+                    <span style={{ fontSize: "14px", fontWeight: "bold" }}>
+                      Trạng thái
+                    </span>
+                    <div>
+                      <span style={{ color: "rgb(255, 66, 78)" }}>
+                        Giao hàng:{" "}
+                      </span>
+                      {`${
+                        order.isDelivered ? "Đã giao hàng" : "Chưa giao hàng"
+                      }`}
+                    </div>
+                    <div>
+                      <span style={{ color: "rgb(255, 66, 78)" }}>
+                        Thanh toán:
+                      </span>
+                      {`${order.isPaid ? "Đã thanh toán" : "Chưa thanh toán"}`}
+                    </div>
                   </WrapperStatus>
-                  <WrapperHeaderItem> 
-                    <img src={order?.image} 
-                      style={{
-                        width: '70px', 
-                        height: '70px', 
-                        objectFit: 'cover',
-                        border: '1px solid rgb(238, 238, 238)',
-                        padding: '2px'
-                      }}
-                    />
-                    <div style={{
-                      width: 260,
-                      overflow: 'hidden',
-                      textOverflow:'ellipsis',
-                      whiteSpace:'nowrap',
-                      marginLeft: '10px'
-                    }}>{order?.name}</div>
-                    <span style={{ fontSize: '13px', color: '#242424',marginLeft: 'auto' }}>{convertPrice(order?.price)}</span>
-                  </WrapperHeaderItem>
+                  {renderProduct(order?.orderItems)}
                   <WrapperFooterItem>
                     <div>
-                      <span style={{color: 'rgb(255, 66, 78)'}}>Tổng tiền: </span>
-                      <span 
-                        style={{ fontSize: '13px', color: 'rgb(56, 56, 61)',fontWeight: 700 }}
-                      >{convertPrice(data?.totalPrice)}</span>
+                      <span style={{ color: "rgb(255, 66, 78)" }}>
+                        Tổng tiền:{" "}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: "13px",
+                          color: "rgb(56, 56, 61)",
+                          fontWeight: 700,
+                        }}
+                      >
+                        {convertPrice(order?.totalPrice)}
+                      </span>
                     </div>
-                    <div style={{display: 'flex', gap: '10px'}}>
-                    <ButtonComponent
-                        // onClick={() => handleAddCard()}
-                        size={40}
-                        styleButton={{
-                            height: '36px',
-                            border: '1px solid rgb(11, 116, 229)',
-                            borderRadius: '4px'
-                        }}
-                        textButton={'Hủy đơn hàng'}
-                        styleTextButton={{ color: 'rgb(11, 116, 229)', fontSize: '14px' }}
-                      >
-                      </ButtonComponent>
+                    <div style={{ display: "flex", gap: "10px" }}>
                       <ButtonComponent
-                        // onClick={() => handleAddCard()}
+                        onClick={() => handleCancelOrder(order?._id)}
                         size={40}
                         styleButton={{
-                            height: '36px',
-                            border: '1px solid rgb(11, 116, 229)',
-                            borderRadius: '4px'
+                          height: "36px",
+                          border: "1px solid rgb(11, 116, 229)",
+                          borderRadius: "4px",
                         }}
-                        textButton={'Xem chi tiết'}
-                        styleTextButton={{ color: 'rgb(11, 116, 229)', fontSize: '14px' }}
-                      >
-                      </ButtonComponent>
+                        textButton={"Hủy đơn hàng"}
+                        styleTextButton={{
+                          color: "rgb(11, 116, 229)",
+                          fontSize: "14px",
+                        }}
+                      ></ButtonComponent>
+                      <ButtonComponent
+                        onClick={() => handleDetailsOrder(order?._id)}
+                        size={40}
+                        styleButton={{
+                          height: "36px",
+                          border: "1px solid rgb(11, 116, 229)",
+                          borderRadius: "4px",
+                        }}
+                        textButton={"Xem chi tiết"}
+                        styleTextButton={{
+                          color: "rgb(11, 116, 229)",
+                          fontSize: "14px",
+                        }}
+                      ></ButtonComponent>
                     </div>
                   </WrapperFooterItem>
                 </WrapperItemOrder>
-              )
+              );
             })}
           </WrapperListOrder>
         </div>
       </WrapperContainer>
     </Loading>
-  )
-}
-export default MyOrderPage
+  );
+};
+export default MyOrderPage;

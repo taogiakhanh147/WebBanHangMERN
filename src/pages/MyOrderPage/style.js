@@ -25,7 +25,6 @@ export const WrapperStyleHeaderDilivery = styled.div`
   margin-bottom: 4px;
 `
 export const WrapperContainer = styled.div`
-  height: 100vh;
   width: 100%;
   background-color: #f5f5fa;
 `
