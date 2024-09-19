@@ -147,7 +147,7 @@ const PaymentPage = () => {
   useEffect(() => {
     if(isSuccess && dataAdd?.status === 'OK') {
       const arrayOrdered = []
-      order?.orderItemsSelected?.foreach(element => {
+      order?.orderItemsSelected?.forEach(element => {
         arrayOrdered.push(element.product)
       })
       dispatch(removeAllOrderProduct({listChecked: arrayOrdered}))

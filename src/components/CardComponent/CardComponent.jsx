@@ -1,4 +1,3 @@
-import { Card } from "antd";
 import React from "react";
 import {
   StyleNameProduct,
@@ -29,7 +28,8 @@ const CardComponent = (props) => {
           style={{borderRadius: `5px 5px 0 0`}}
         />
       }
-      onClick={() => handleDetailsProduct(id)}
+      onClick={() => countInStock !== 0 &&handleDetailsProduct(id)}
+      disabled={countInStock === 0}
     >
       <StyleNameProduct>{name}</StyleNameProduct>
       <WrapperReportText>
