@@ -61,10 +61,13 @@ const OrderPage = () => {
     }
   };
 
-  const handleChangeCount = (type, idProduct) => {
+  const handleChangeCount = (type, idProduct, condition) => {
     if (type === "increase") {
-      dispatch(increaseAmount({ idProduct }));
+      if(condition) {
+        dispatch(increaseAmount({ idProduct }));
+      }
     } else if (type === "decrease") {
+      if(condition)
       dispatch(decreaseAmount({ idProduct }));
     }
   };
@@ -118,7 +121,7 @@ const OrderPage = () => {
 
   const priceDiscountMemo = useMemo(() => {
     const result = order?.orderItemsSelected.reduce((total, cur) => {
-      return total + cur.discount * cur.amount;
+      return (priceMemo * (total + cur.discount)) / 100;
     }, 0);
     if (Number(result)) {
       return result;
@@ -127,13 +130,11 @@ const OrderPage = () => {
   }, [order]);
 
   const deliveryPriceMemo = useMemo(() => {
-    if(order?.orderItemsSelected.length === 0 || priceMemo > 500000) {
+    if (order?.orderItemsSelected.length === 0 || priceMemo > 500000) {
       return 0;
-    }
-    else if(priceMemo < 200000) {
+    } else if (priceMemo < 200000) {
       return 20000;
-    }
-    else if (priceMemo > 200000 && priceMemo <= 500000) {
+    } else if (priceMemo > 200000 && priceMemo <= 500000) {
       return 10000;
     }
   }, [priceMemo]);
@@ -230,7 +231,13 @@ const OrderPage = () => {
               <StepComponent
                 items={itemsDelivery}
                 current={
-                  order?.orderItemsSelected.length === 0 ? 3 : deliveryPriceMemo === 20000 ? 0 : deliveryPriceMemo === 10000 ? 1 : 2
+                  order?.orderItemsSelected.length === 0
+                    ? 3
+                    : deliveryPriceMemo === 20000
+                    ? 0
+                    : deliveryPriceMemo === 10000
+                    ? 1
+                    : 2
                 }
               />
             </WrapperStyleHeaderDelivery>
@@ -316,7 +323,7 @@ const OrderPage = () => {
                             cursor: "pointer",
                           }}
                           onClick={() =>
-                            handleChangeCount("decrease", order?.product)
+                            handleChangeCount("decrease", order?.product, order?.amount > 1)
                           }
                         >
                           <MinusOutlined
@@ -335,7 +342,7 @@ const OrderPage = () => {
                             cursor: "pointer",
                           }}
                           onClick={() =>
-                            handleChangeCount("increase", order?.product)
+                            handleChangeCount("increase", order?.product, order?.amount < order.countInStock)
                           }
                         >
                           <PlusOutlined
@@ -410,7 +417,7 @@ const OrderPage = () => {
                       fontWeight: "bold",
                     }}
                   >
-                    {`${priceDiscountMemo} %`}
+                    {convertPrice(priceDiscountMemo)}
                   </span>
                 </div>
                 <div

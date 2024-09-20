@@ -70,7 +70,7 @@ const PaymentPage = () => {
 
   const priceDiscountMemo = useMemo(() => {
     const result = order?.orderItemsSelected.reduce((total, cur) => {
-      return total + cur.discount * cur.amount;
+      return priceMemo * (total + cur.discount) /100;
     }, 0);
     if (Number(result)) {
       return result;
@@ -78,21 +78,23 @@ const PaymentPage = () => {
     return 0;
   }, [order]);
 
-  const DeliveryPriceMemo = useMemo(() => {
-    if (priceMemo > 100000) {
-      return 10000;
-    } else if (priceMemo === 0) {
+  const deliveryPriceMemo = useMemo(() => {
+    if(order?.orderItemsSelected.length === 0 || priceMemo > 500000) {
       return 0;
-    } else {
-      return 200000;
+    }
+    else if(priceMemo < 200000) {
+      return 20000;
+    }
+    else if (priceMemo > 200000 && priceMemo <= 500000) {
+      return 10000;
     }
   }, [priceMemo]);
 
   const totalPriceMemo = useMemo(() => {
     return (
-      Number(priceMemo) - Number(priceDiscountMemo) + Number(DeliveryPriceMemo)
+      Number(priceMemo) - Number(priceDiscountMemo) + Number(deliveryPriceMemo)
     );
-  }, [priceMemo, priceDiscountMemo, DeliveryPriceMemo]);
+  }, [priceMemo, priceDiscountMemo, deliveryPriceMemo]);
 
   const handleRemoveAllProduct = () => {
     if (listChecked?.length >= 1) {
@@ -121,7 +123,7 @@ const PaymentPage = () => {
           city: user?.city,
           paymentMethod: payment,
           itemsPrice: priceMemo,
-          shippingPrice: DeliveryPriceMemo,
+          shippingPrice: deliveryPriceMemo,
           totalPrice: totalPriceMemo,
           user: user?.id,
         }
@@ -295,7 +297,7 @@ const PaymentPage = () => {
                         fontWeight: "bold",
                       }}
                     >
-                      {`${priceDiscountMemo} %`}
+                      {convertPrice(priceDiscountMemo)}
                     </span>
                   </div>
                   <div
@@ -313,7 +315,7 @@ const PaymentPage = () => {
                         fontWeight: "bold",
                       }}
                     >
-                      {convertPrice(DeliveryPriceMemo)}
+                      {convertPrice(deliveryPriceMemo)}
                     </span>
                   </div>
                 </WrapperInfo>

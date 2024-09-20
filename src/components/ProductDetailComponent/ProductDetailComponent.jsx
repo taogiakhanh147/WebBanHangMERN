@@ -22,6 +22,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { addOrderProduct } from "../../redux/slides/orderSlide";
 import { convertPrice } from "../../utils";
 const ProductDetailComponent = ({ idProduct }) => {
+  const order = useSelector((state) => state.order)
   const [numProduct, setNumProduct] = useState(1);
   const user = useSelector((state) => state.user);
   const navigate = useNavigate();
@@ -69,17 +70,21 @@ const ProductDetailComponent = ({ idProduct }) => {
             image: productDetails?.image,
             price: productDetails?.price,
             product: productDetails?._id,
+            discount: productDetails?.discount,
+            countInStock: productDetails?.countInStock
           },
         })
       );
     }
   };
 
-  const handleChangeCount = (type) => {
+  const handleChangeCount = (type, condition) => {
     if (type === "increase") {
-      setNumProduct(numProduct + 1);
+      if(condition) {
+        setNumProduct(numProduct + 1);
+      }
     } else if (type === "decrease") {
-      if (numProduct > 0) {
+      if(condition) {
         setNumProduct(numProduct - 1);
       }
     }
@@ -166,7 +171,7 @@ const ProductDetailComponent = ({ idProduct }) => {
                   background: "transparent",
                   cursor: "pointer",
                 }}
-                onClick={() => handleChangeCount("decrease")}
+                onClick={() => handleChangeCount("decrease", numProduct > 1)}
               >
                 <MinusOutlined style={{ color: "#000", fontSize: "20px" }} />
               </button>
@@ -181,7 +186,7 @@ const ProductDetailComponent = ({ idProduct }) => {
                   background: "transparent",
                   cursor: "pointer",
                 }}
-                onClick={() => handleChangeCount("increase")}
+                onClick={() => handleChangeCount("increase", numProduct < productDetails?.countInStock)}
               >
                 <PlusOutlined style={{ color: "#000", fontSize: "20px" }} />
               </button>
