@@ -17,13 +17,15 @@ import InputComponent from "../../components/InputComponent/InputComponent";
 import { useMutationHooks } from "../../hooks/useMutationHook";
 import * as UserService from "../../services/UserService";
 import * as OrderService from "../../services/OrderService";
+import * as PaymentService from "../../services/PaymentService";
 import * as message from "../../components/Message/Message";
 import Loading from "../../components/LoadingComponent/Loading";
 import { updateUser } from "../../redux/slides/userSlide";
 import { useNavigate } from "react-router-dom";
+import { PayPalButton } from "react-paypal-button-v2";
 
 const PaymentPage = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const [delivery, setDelivery] = useState("fast");
   const [payment, setPayment] = useState("later_money");
   const order = useSelector((state) => state.order);
@@ -36,6 +38,7 @@ const PaymentPage = () => {
     address: "",
     city: "",
   });
+  const [sdkReady, setSkdReady] = useState(false)
 
   const [form] = Form.useForm();
 
@@ -70,7 +73,7 @@ const PaymentPage = () => {
 
   const priceDiscountMemo = useMemo(() => {
     const result = order?.orderItemsSelected.reduce((total, cur) => {
-      return priceMemo * (total + cur.discount) /100;
+      return (priceMemo * (total + cur.discount)) / 100;
     }, 0);
     if (Number(result)) {
       return result;
@@ -79,13 +82,11 @@ const PaymentPage = () => {
   }, [order]);
 
   const deliveryPriceMemo = useMemo(() => {
-    if(order?.orderItemsSelected.length === 0 || priceMemo > 500000) {
+    if (order?.orderItemsSelected.length === 0 || priceMemo > 500000) {
       return 0;
-    }
-    else if(priceMemo < 200000) {
+    } else if (priceMemo < 200000) {
       return 20000;
-    }
-    else if (priceMemo > 200000 && priceMemo <= 500000) {
+    } else if (priceMemo > 200000 && priceMemo <= 500000) {
       return 10000;
     }
   }, [priceMemo]);
@@ -113,21 +114,19 @@ const PaymentPage = () => {
       priceMemo &&
       user?.id
     ) {
-      mutationAddOrder.mutate(
-        {
-          token: user?.access_token,
-          orderItems: order?.orderItemsSelected,
-          fullName: user?.name,
-          address: user?.address,
-          phone: user?.phone,
-          city: user?.city,
-          paymentMethod: payment,
-          itemsPrice: priceMemo,
-          shippingPrice: deliveryPriceMemo,
-          totalPrice: totalPriceMemo,
-          user: user?.id,
-        }
-      );
+      mutationAddOrder.mutate({
+        token: user?.access_token,
+        orderItems: order?.orderItemsSelected,
+        fullName: user?.name,
+        address: user?.address,
+        phone: user?.phone,
+        city: user?.city,
+        paymentMethod: payment,
+        itemsPrice: priceMemo,
+        shippingPrice: deliveryPriceMemo,
+        totalPrice: totalPriceMemo,
+        user: user?.id,
+      });
     }
   };
 
@@ -144,28 +143,33 @@ const PaymentPage = () => {
   });
 
   const { isPending, data } = mutationUpdate;
-  const { data: dataAdd, isPending: isPendingAddOrder, isSuccess, isError } = mutationAddOrder;
+  const {
+    data: dataAdd,
+    isPending: isPendingAddOrder,
+    isSuccess,
+    isError,
+  } = mutationAddOrder;
 
   useEffect(() => {
-    if(isSuccess && dataAdd?.status === 'OK') {
-      const arrayOrdered = []
-      order?.orderItemsSelected?.forEach(element => {
-        arrayOrdered.push(element.product)
-      })
-      dispatch(removeAllOrderProduct({listChecked: arrayOrdered}))
-      message.success("Đặt hàng thành công")
-      navigate('/orderSuccess', {
+    if (isSuccess && dataAdd?.status === "OK") {
+      const arrayOrdered = [];
+      order?.orderItemsSelected?.forEach((element) => {
+        arrayOrdered.push(element.product);
+      });
+      dispatch(removeAllOrderProduct({ listChecked: arrayOrdered }));
+      message.success("Đặt hàng thành công");
+      navigate("/orderSuccess", {
         state: {
           delivery,
           payment,
           orders: order?.orderItemsSelected,
-          totalPriceMemo: totalPriceMemo
-        }
-      }) 
-    } else if(isError){
-      message.error()
+          totalPriceMemo: totalPriceMemo,
+        },
+      });
+    } else if (isError) {
+      message.error();
     }
-  }, [isSuccess, isError])
+  }, [isSuccess, isError]);
 
   const handleCancelUpdate = () => {
     setStateUserDetails({
@@ -177,6 +181,24 @@ const PaymentPage = () => {
     form.resetFields();
     setIsOpenModalUpdateInfo(false);
   };
+
+  const onSuccessPaypal = (details, data) => {
+    mutationAddOrder.mutate({
+      token: user?.access_token,
+      orderItems: order?.orderItemsSelected,
+      fullName: user?.name,
+      address: user?.address,
+      phone: user?.phone,
+      city: user?.city,
+      paymentMethod: payment,
+      itemsPrice: priceMemo,
+      shippingPrice: deliveryPriceMemo,
+      totalPrice: totalPriceMemo,
+      user: user?.id,
+      isPaid: true,
+      paidAt: details.update_time
+    });
+  }
 
   const handleUpdateInfoUser = () => {
     const { name, address, city, phone } = stateUserDetails;
@@ -212,6 +234,26 @@ const PaymentPage = () => {
     setPayment(e.target.value);
   };
 
+  const addPaypalScript = async () => {
+    const {data} = await PaymentService.getConfig()
+    const script = document.createElement('script')
+    script.type = 'text/javascript'
+    script.src = `https://sandbox.paypal.com/sdk/js?client-id=${data}`
+    script.async = true
+    script.onload = () => {
+      setSkdReady(true)
+    }
+    document.body.appendChild(script)
+  }
+
+  useEffect(() => {
+    if(!window.paypal) {
+      addPaypalScript()
+    } else {
+      setSkdReady(true)
+    }
+  }, [])
+
   return (
     <div style={{ background: "#f5f5f5", width: "100%", height: "100vh" }}>
       <Loading isPending={isPendingAddOrder}>
@@ -245,6 +287,7 @@ const PaymentPage = () => {
                     <Radio value="later_money">
                       Thanh toán tiền mặt khi nhận hàng
                     </Radio>
+                    <Radio value="paypal">Thanh toán bằng paypal</Radio>
                   </WrapperRadio>
                 </div>
               </WrapperInfo>
@@ -258,7 +301,11 @@ const PaymentPage = () => {
                   >{`${user?.address} ${user?.city}`}</span>
                   <span
                     onClick={handleChangeAddress}
-                    style={{ color: "blue", cursor: "pointer", fontSize: "13px" }}
+                    style={{
+                      color: "blue",
+                      cursor: "pointer",
+                      fontSize: "13px",
+                    }}
                   >
                     Thay đổi
                   </span>
@@ -337,23 +384,37 @@ const PaymentPage = () => {
                   </span>
                 </WrapperTotal>
               </div>
-              <ButtonComponent
-                onClick={() => handleAddOrder()}
-                size={40}
-                styleButton={{
-                  background: "rgb(255,57,69)",
-                  height: "48px",
-                  width: "320px",
-                  border: "none",
-                  borderRadius: "4px",
-                }}
-                textButton={"Đặt hàng"}
-                styleTextButton={{
-                  color: "#fff",
-                  fontSize: "15px",
-                  fontWeight: "700",
-                }}
-              ></ButtonComponent>
+
+              {payment === "paypal" && sdkReady ? (
+                <div style={{width: '320px'}}>
+                  <PayPalButton
+                    amount={totalPriceMemo / 30000}
+                    // shippingPreference="NO_SHIPPING" // default is "GET_FROM_FILE"
+                    onSuccess={onSuccessPaypal}
+                    onError={() => {
+                      alert('error')
+                    }}
+                  />
+                </div>
+              ) : (
+                <ButtonComponent
+                  onClick={() => handleAddOrder()}
+                  size={40}
+                  styleButton={{
+                    background: "rgb(255,57,69)",
+                    height: "48px",
+                    width: "320px",
+                    border: "none",
+                    borderRadius: "4px",
+                  }}
+                  textButton={"Đặt hàng"}
+                  styleTextButton={{
+                    color: "#fff",
+                    fontSize: "15px",
+                    fontWeight: "700",
+                  }}
+                ></ButtonComponent>
+              )}
             </WrapperRight>
           </div>
         </div>
