@@ -30,7 +30,6 @@ const PaymentPage = () => {
   const [payment, setPayment] = useState("later_money");
   const order = useSelector((state) => state.order);
   const user = useSelector((state) => state.user);
-  const [listChecked, setListChecked] = useState([]);
   const [isOpenModalUpdateInfo, setIsOpenModalUpdateInfo] = useState(false);
   const [stateUserDetails, setStateUserDetails] = useState({
     name: "",
@@ -97,12 +96,6 @@ const PaymentPage = () => {
     );
   }, [priceMemo, priceDiscountMemo, deliveryPriceMemo]);
 
-  const handleRemoveAllProduct = () => {
-    if (listChecked?.length >= 1) {
-      dispatch(removeAllOrderProduct({ listChecked }));
-    }
-  };
-
   const handleAddOrder = () => {
     if (
       user?.access_token &&
@@ -126,6 +119,7 @@ const PaymentPage = () => {
         shippingPrice: deliveryPriceMemo,
         totalPrice: totalPriceMemo,
         user: user?.id,
+        email: user?.email
       });
     }
   };

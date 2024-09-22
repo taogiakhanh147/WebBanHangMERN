@@ -14,6 +14,7 @@ const initialState = {
   paidAt: "",
   isDelivered: false,
   deliveredAt: "",
+  isSuccessOrder: false
 };
 
 export const orderSlide = createSlice({
@@ -27,9 +28,15 @@ export const orderSlide = createSlice({
       );
       if (itemOrder) {
         itemOrder.amount += orderItem?.amount;
+        state.isSuccessOrder = true;
       } else {
         state.orderItems.push(orderItem);
+        state.isSuccessOrder = true;
       }
+    },
+
+    resetOrder: (state) => {
+      state.isSuccessOrder = false
     },
 
     increaseAmount: (state, action) => {
@@ -101,6 +108,6 @@ export const orderSlide = createSlice({
 });
 
 // Action creators are generated for each case reducer function
-export const { addOrderProduct, removeOrderProduct, increaseAmount, decreaseAmount, removeAllOrderProduct, selectedOrder } = orderSlide.actions;
+export const { addOrderProduct, removeOrderProduct, increaseAmount, decreaseAmount, removeAllOrderProduct, selectedOrder, resetOrder } = orderSlide.actions;
 
 export default orderSlide.reducer;

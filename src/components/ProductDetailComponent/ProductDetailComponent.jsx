@@ -1,5 +1,5 @@
 import { Col, Image, Rate, Row } from "antd";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import imageProductSmall from "../../assets/images/small1.webp";
 import {
   WrapperAddressProduct,
@@ -19,11 +19,15 @@ import { useQuery } from "@tanstack/react-query";
 import Loading from "../LoadingComponent/Loading";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
-import { addOrderProduct } from "../../redux/slides/orderSlide";
+import { addOrderProduct, resetOrder } from "../../redux/slides/orderSlide";
 import { convertPrice } from "../../utils";
+import * as message from "../Message/Message"
+
 const ProductDetailComponent = ({ idProduct }) => {
   const order = useSelector((state) => state.order)
   const [numProduct, setNumProduct] = useState(1);
+  const [isErrorOder, setIsErrorOrder] = useState(false)
+  const [errorLimitOrder, setErrorLimitOrder] = useState(false)
   const user = useSelector((state) => state.user);
   const navigate = useNavigate();
   const location = useLocation();
@@ -47,34 +51,48 @@ const ProductDetailComponent = ({ idProduct }) => {
     enabled: !!idProduct,
   });
 
+  useEffect(() => {
+    console.log("productDetails?.countInStock", productDetails?.countInStock)
+    const orderRedux = order?.orderItems?.find((item) => item.product === productDetails?._id) 
+    if((orderRedux?.amount + numProduct) <= orderRedux?.countInstock || (!orderRedux && !productDetails?.countInStock)) {
+        setErrorLimitOrder(false)
+    } else {
+        setErrorLimitOrder(true)
+    }
+},[numProduct])
+  
+  useEffect(() => {
+    if(order.isSuccessOrder) {
+      message.success('Thêm vào giỏ hàng thành công')
+    }
+    return () => {
+      dispatch(resetOrder())
+    }
+  },[order.isSuccessOrder])
+
+
   const handleAddOrderProduct = () => {
     if (!user?.id) {
       navigate("/sign-in", { state: location?.pathname });
     } else {
-      //   {
-      //     name: {type: String, required: true},
-      //     amount: {type: Number, required: true},
-      //     image: {type: String, required: true},
-      //     price: {type: Number, required: true},
-      //     product: {
-      //         type: mongoose.Schema.Types.ObjectId,
-      //         ref: 'Product',
-      //         required: true,
-      //     },
-      // },
-      dispatch(
-        addOrderProduct({
-          orderItem: {
-            name: productDetails?.name,
-            amount: numProduct,
-            image: productDetails?.image,
-            price: productDetails?.price,
-            product: productDetails?._id,
-            discount: productDetails?.discount,
-            countInStock: productDetails?.countInStock
-          },
-        })
-      );
+      const orderRedux = order?.orderItems?.find((item) => item.product === productDetails?._id)
+      if((orderRedux?.amount + numProduct) <= orderRedux?.countInStock || (!orderRedux && productDetails?.countInStock > 0)) {
+        dispatch(
+          addOrderProduct({
+            orderItem: {
+              name: productDetails?.name,
+              amount: numProduct,
+              image: productDetails?.image,
+              price: productDetails?.price,
+              product: productDetails?._id,
+              discount: productDetails?.discount,
+              countInStock: productDetails?.countInStock
+            },
+          })
+        );
+      } else {
+        setErrorLimitOrder(true)
+      }
     }
   };
 
@@ -82,9 +100,12 @@ const ProductDetailComponent = ({ idProduct }) => {
     if (type === "increase") {
       if(condition) {
         setNumProduct(numProduct + 1);
+      } else {
+        setIsErrorOrder(true)
       }
     } else if (type === "decrease") {
       if(condition) {
+        setIsErrorOrder(false)
         setNumProduct(numProduct - 1);
       }
     }
@@ -191,6 +212,10 @@ const ProductDetailComponent = ({ idProduct }) => {
                 <PlusOutlined style={{ color: "#000", fontSize: "20px" }} />
               </button>
             </WrapperQualityProduct>
+            <div style={{marginTop: '10px'}}>
+              {(errorLimitOrder) && <span style={{color: 'red'}}>Số lượng hàng tồn kho không đủ</span>}
+              {/* {errorLimitOrder && <span style={{color: 'red'}}>Số lượng hàng tồn kho không đủ</span>} */}
+            </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <ButtonComponent
