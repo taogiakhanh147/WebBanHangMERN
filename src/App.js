@@ -53,7 +53,7 @@ function App() {
   };
 
   return (
-    <div>
+    <div style={{height: '100vh', width: '100%'}}>
       <Loading isPending={isPending}>
         <Router>
           <Routes>
