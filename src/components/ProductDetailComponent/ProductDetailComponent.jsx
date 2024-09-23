@@ -20,14 +20,16 @@ import Loading from "../LoadingComponent/Loading";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import { addOrderProduct, resetOrder } from "../../redux/slides/orderSlide";
-import { convertPrice } from "../../utils";
-import * as message from "../Message/Message"
+import { convertPrice, initFacebookSDK } from "../../utils";
+import * as message from "../Message/Message";
+import LikeButtonComponent from "../LikeButtonComponent/LikeButtonComponent";
+import CommentComponent from "../CommentComponent/CommentComponent";
 
 const ProductDetailComponent = ({ idProduct }) => {
-  const order = useSelector((state) => state.order)
+  const order = useSelector((state) => state.order);
   const [numProduct, setNumProduct] = useState(1);
-  const [isErrorOder, setIsErrorOrder] = useState(false)
-  const [errorLimitOrder, setErrorLimitOrder] = useState(false)
+  const [isErrorOder, setIsErrorOrder] = useState(false);
+  const [errorLimitOrder, setErrorLimitOrder] = useState(false);
   const user = useSelector((state) => state.user);
   const navigate = useNavigate();
   const location = useLocation();
@@ -52,31 +54,43 @@ const ProductDetailComponent = ({ idProduct }) => {
   });
 
   useEffect(() => {
-    console.log("productDetails?.countInStock", productDetails?.countInStock)
-    const orderRedux = order?.orderItems?.find((item) => item.product === productDetails?._id) 
-    if((orderRedux?.amount + numProduct) <= orderRedux?.countInstock || (!orderRedux && !productDetails?.countInStock)) {
-        setErrorLimitOrder(false)
-    } else {
-        setErrorLimitOrder(true)
-    }
-},[numProduct])
-  
+    initFacebookSDK();
+  }, []);
+
   useEffect(() => {
-    if(order.isSuccessOrder) {
-      message.success('Thêm vào giỏ hàng thành công')
+    const orderRedux = order?.orderItems?.find(
+      (item) => item.product === productDetails?._id
+    );
+    if (
+      orderRedux?.amount + numProduct <= orderRedux?.countInStock ||
+      (!orderRedux && productDetails?.countInStock > 0)
+    ) {
+      setErrorLimitOrder(false);
+    } else if (productDetails?.countInStock === 0) {
+      setErrorLimitOrder(true);
+    }
+  }, [numProduct]);
+
+  useEffect(() => {
+    if (order.isSuccessOrder) {
+      message.success("Thêm vào giỏ hàng thành công");
     }
     return () => {
-      dispatch(resetOrder())
-    }
-  },[order.isSuccessOrder])
-
+      dispatch(resetOrder());
+    };
+  }, [order.isSuccessOrder]);
 
   const handleAddOrderProduct = () => {
     if (!user?.id) {
       navigate("/sign-in", { state: location?.pathname });
     } else {
-      const orderRedux = order?.orderItems?.find((item) => item.product === productDetails?._id)
-      if((orderRedux?.amount + numProduct) <= orderRedux?.countInStock || (!orderRedux && productDetails?.countInStock > 0)) {
+      const orderRedux = order?.orderItems?.find(
+        (item) => item.product === productDetails?._id
+      );
+      if (
+        orderRedux?.amount + numProduct <= orderRedux?.countInStock ||
+        (!orderRedux && productDetails?.countInStock > 0)
+      ) {
         dispatch(
           addOrderProduct({
             orderItem: {
@@ -86,26 +100,26 @@ const ProductDetailComponent = ({ idProduct }) => {
               price: productDetails?.price,
               product: productDetails?._id,
               discount: productDetails?.discount,
-              countInStock: productDetails?.countInStock
+              countInStock: productDetails?.countInStock,
             },
           })
         );
       } else {
-        setErrorLimitOrder(true)
+        setErrorLimitOrder(true);
       }
     }
   };
 
   const handleChangeCount = (type, condition) => {
     if (type === "increase") {
-      if(condition) {
+      if (condition) {
         setNumProduct(numProduct + 1);
       } else {
-        setIsErrorOrder(true)
+        setIsErrorOrder(true);
       }
     } else if (type === "decrease") {
-      if(condition) {
-        setIsErrorOrder(false)
+      if (condition) {
+        setIsErrorOrder(false);
         setNumProduct(numProduct - 1);
       }
     }
@@ -176,6 +190,13 @@ const ProductDetailComponent = ({ idProduct }) => {
             <span className="address"> {user?.address}</span>
             <span className="change-address"> Đổi địa chỉ</span>
           </WrapperAddressProduct>
+          <LikeButtonComponent
+            dataHref={
+              process.env.REACT_APP_IS_LOCAL
+                ? "https://developers.facebook.com/docs/plugins/"
+                : window.location.href
+            }
+          />
           <div
             style={{
               margin: `10px 0 20px`,
@@ -207,14 +228,22 @@ const ProductDetailComponent = ({ idProduct }) => {
                   background: "transparent",
                   cursor: "pointer",
                 }}
-                onClick={() => handleChangeCount("increase", numProduct < productDetails?.countInStock)}
+                onClick={() =>
+                  handleChangeCount(
+                    "increase",
+                    numProduct < productDetails?.countInStock
+                  )
+                }
               >
                 <PlusOutlined style={{ color: "#000", fontSize: "20px" }} />
               </button>
             </WrapperQualityProduct>
-            <div style={{marginTop: '10px'}}>
-              {(errorLimitOrder) && <span style={{color: 'red'}}>Số lượng hàng tồn kho không đủ</span>}
-              {/* {errorLimitOrder && <span style={{color: 'red'}}>Số lượng hàng tồn kho không đủ</span>} */}
+            <div style={{ marginTop: "10px" }}>
+              {(errorLimitOrder || isErrorOder) && (
+                <span style={{ color: "red" }}>
+                  Số lượng hàng tồn kho không đủ
+                </span>
+              )}
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
@@ -228,8 +257,8 @@ const ProductDetailComponent = ({ idProduct }) => {
                 borderRadius: `4px`,
               }}
               onClick={handleAddOrderProduct}
-              textButton={"Chọn mua"}
-              styleTextButton={{
+              textbutton={"Chọn mua"}
+              styletextbutton={{
                 color: "#fff",
                 fontSize: `15px`,
                 fontWeight: `700`,
@@ -244,11 +273,19 @@ const ProductDetailComponent = ({ idProduct }) => {
                 border: `1px solid rgb(13,92,182)`,
                 borderRadius: `4px`,
               }}
-              textButton={"Mua trả sau"}
-              styleTextButton={{ color: "rgb(13,92,182)", fontSize: `15px` }}
+              textbutton={"Mua trả sau"}
+              styletextbutton={{ color: "rgb(13,92,182)", fontSize: `15px` }}
             />
           </div>
         </Col>
+        <CommentComponent
+          dataHref={
+            process.env.REACT_APP_IS_LOCAL
+              ? "https://developers.facebook.com/docs/plugins/comments#configurator"
+              : window.location.href
+          }
+          width="1270"
+        />
       </Row>
     </Loading>
   );

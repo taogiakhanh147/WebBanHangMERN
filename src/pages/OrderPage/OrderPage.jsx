@@ -269,7 +269,7 @@ const OrderPage = () => {
             <WrapperListOrder>
               {order?.orderItems?.map((order) => {
                 return (
-                  <WrapperItemOrder>
+                  <WrapperItemOrder key={order?.product}>
                     <div
                       style={{
                         width: "390px",
@@ -468,8 +468,8 @@ const OrderPage = () => {
                 border: "none",
                 borderRadius: "4px",
               }}
-              textButton={"Mua hàng"}
-              styleTextButton={{
+              textbutton={"Mua hàng"}
+              styletextbutton={{
                 color: "#fff",
                 fontSize: "15px",
                 fontWeight: "700",

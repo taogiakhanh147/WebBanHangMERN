@@ -30,7 +30,6 @@ const DetailsOrderPage = () => {
     return result
   },[data])
 
-  console.log(data)
 
   return (
    <Loading isPending={isPending}>

@@ -132,7 +132,7 @@ const HomePage = () => {
           </div>
           <div style={{display:'flex', justifyContent: 'center', marginTop: '20px'}}>
           <WrapperButtonMore
-            textButton={isPlaceholderData ? "Load more" : "Xem thêm"}
+            textbutton={isPlaceholderData ? "Load more" : "Xem thêm"}
             type="outline"
             styleButton={{
               border: `${products?.total === products?.data.length ? 'none' : '1px solid rgb(11,116,229)'}`,
@@ -149,7 +149,7 @@ const HomePage = () => {
               products?.total === products?.data.length ||
               products?.totalPage === 1
             }
-            styleTextButton={{
+            styletextbutton={{
               fontWeight: 500,
               color: products?.total === products?.data.length && "#fff",
             }}

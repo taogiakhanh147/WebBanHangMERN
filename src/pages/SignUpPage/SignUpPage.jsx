@@ -140,8 +140,8 @@ const SignUpPage = () => {
                 borderRadius: `4px`,
                 margin: `26px 0 10px`,
               }}
-              textButton={"Đăng ký"}
-              styleTextButton={{
+              textbutton={"Đăng ký"}
+              styletextbutton={{
                 color: "#fff",
                 fontSize: `15px`,
                 fontWeight: `700`,

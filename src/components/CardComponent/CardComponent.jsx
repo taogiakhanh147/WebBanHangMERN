@@ -28,7 +28,7 @@ const CardComponent = (props) => {
           style={{borderRadius: `5px 5px 0 0`}}
         />
       }
-      onClick={() => countInStock !== 0 &&handleDetailsProduct(id)}
+      onClick={() => handleDetailsProduct(id)}
       disabled={countInStock === 0}
     >
       <StyleNameProduct>{name}</StyleNameProduct>

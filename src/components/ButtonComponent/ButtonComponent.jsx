@@ -4,8 +4,8 @@ import { Button } from "antd";
 const ButtonComponent = ({
   size,
   styleButton,
-  styleTextButton,
-  textButton,
+  styletextbutton,
+  textbutton,
   disabled,
   ...rest
 }) => {
@@ -18,7 +18,7 @@ const ButtonComponent = ({
       size={size}
       {...rest}
     >
-      <span style={styleTextButton}>{textButton}</span>
+      <span style={styletextbutton}>{textbutton}</span>
     </Button>
   );
 };
