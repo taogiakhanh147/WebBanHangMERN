@@ -32,13 +32,11 @@ const AdminPage = () => {
 
   const getAllProducts = async () => {
     const res = await ProductService.getAllProduct()
-    console.log('res1', res)
     return {data: res?.data, key: 'products'}
   }
 
   const getAllUsers = async () => {
     const res = await UserService.getAllUser(user?.access_token)
-    console.log('res', res)
     return {data: res?.data, key: 'users'}
   }
 
@@ -90,7 +88,6 @@ const AdminPage = () => {
   const handleOnCLick = ({ key }) => {
     setKeySelected(key)
   }
-  console.log('memoCount', memoCount)
   return (
     <>
       <HeaderComponent isHiddenSearch isHiddenCart />
