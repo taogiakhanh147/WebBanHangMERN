@@ -22,7 +22,6 @@ import * as message from "../../components/Message/Message";
 import Loading from "../../components/LoadingComponent/Loading";
 import { updateUser } from "../../redux/slides/userSlide";
 import { useNavigate } from "react-router-dom";
-import { PayPalButton } from "react-paypal-button-v2";
 
 const PaymentPage = () => {
   const navigate = useNavigate();
@@ -283,7 +282,7 @@ const PaymentPage = () => {
                     <Radio value="later_money">
                       Thanh toán tiền mặt khi nhận hàng
                     </Radio>
-                    <Radio value="paypal">Thanh toán bằng paypal</Radio>
+                    {/* <Radio value="paypal">Thanh toán bằng paypal</Radio> */}
                   </WrapperRadio>
                 </div>
               </WrapperInfo>
@@ -381,19 +380,7 @@ const PaymentPage = () => {
                 </WrapperTotal>
               </div>
 
-              {payment === "paypal" && sdkReady ? (
-                <div style={{width: '320px'}}>
-                  <PayPalButton
-                    amount={Math.round(totalPriceMemo / 30000)}
-                    // shippingPreference="NO_SHIPPING" // default is "GET_FROM_FILE"
-                    onSuccess={onSuccessPaypal}
-                    onError={() => {
-                      alert('error')
-                    }}
-                  />
-                </div>
-              ) : (
-                <ButtonComponent
+              <ButtonComponent
                   onClick={() => handleAddOrder()}
                   size={40}
                   styleButton={{
@@ -410,7 +397,6 @@ const PaymentPage = () => {
                     fontWeight: "700",
                   }}
                 ></ButtonComponent>
-              )}
             </WrapperRight>
           </div>
         </div>
