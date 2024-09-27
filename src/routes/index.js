@@ -36,7 +36,7 @@ export const routes = [
         isShowHeader: true
     },
     {
-        path: '/payment',
+        path: '/payment/:id',
         page: PaymentPage,
         isShowHeader: true
     },

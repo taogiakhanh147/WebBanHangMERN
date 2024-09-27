@@ -75,7 +75,7 @@ const OrderPage = () => {
   const handleOnChangeCheckAll = (e) => {
     if (e.target.checked) {
       const newListChecked = [];
-      order?.orderItems?.forEach((item) => {
+      order?.orderItems.filter((orderItem) => orderItem.userCart === user?.id)?.forEach((item) => {
         newListChecked.push(item.product);
       });
       setListChecked(newListChecked);
@@ -158,7 +158,7 @@ const OrderPage = () => {
     } else if (!user.address || !user.phone || !user.name || !user.city) {
       setIsOpenModalUpdateInfo(true);
     } else {
-      navigate("/payment");
+      navigate(`/payment/${user?.id}`);
     }
   };
 
@@ -246,9 +246,9 @@ const OrderPage = () => {
               <span style={{ display: "inline-block", width: "390px" }}>
                 <Checkbox
                   onChange={handleOnChangeCheckAll}
-                  checked={listChecked?.length === order?.orderItems?.length}
+                  checked={listChecked?.length === order?.orderItems.filter((orderItem) => orderItem.userCart === user?.id)?.length}
                 ></Checkbox>
-                <span>Tất cả ({order.orderItems?.length} sản phẩm)</span>
+                <span>Tất cả ({order.orderItems.filter((orderItem) => orderItem.userCart === user?.id)?.length} sản phẩm)</span>
               </span>
               <div
                 style={{
@@ -268,7 +268,7 @@ const OrderPage = () => {
               </div>
             </WrapperStyleHeader>
             <WrapperListOrder>
-              {order?.orderItems?.map((order) => {
+              {order?.orderItems?.filter((orderItem) => orderItem?.userCart === user?.id).map((order) => {
                 return (
                   <WrapperItemOrder key={order?.product}>
                     <div

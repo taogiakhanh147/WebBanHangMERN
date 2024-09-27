@@ -119,7 +119,8 @@ const PaymentPage = () => {
         shippingPrice: deliveryPriceMemo,
         totalPrice: totalPriceMemo,
         user: user?.id,
-        email: user?.email
+        email: user?.email,
+        userAuthMiddleWare: user?.id
       });
     }
   };
@@ -131,8 +132,8 @@ const PaymentPage = () => {
   });
 
   const mutationAddOrder = useMutationHooks((data) => {
-    const { token, ...rests } = data;
-    const res = OrderService.createOrder(token, { ...rests });
+    const { userAuthMiddleWare, token, ...rests } = data;
+    const res = OrderService.createOrder(userAuthMiddleWare, token, { ...rests });
     return res;
   });
 

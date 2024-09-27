@@ -32,7 +32,7 @@ const HeaderComponent = ({ isHiddenSearch = false, isHiddenCart = false }) => {
   const [isOpenPopup, setIsOpenPopup] = useState(false);
 
   const handleNavigationLogin = () => {
-    navigate("sign-in");
+    navigate("/sign-in");
   };
 
   const handleNavigationHome = () => {
@@ -178,11 +178,17 @@ const HeaderComponent = ({ isHiddenSearch = false, isHiddenCart = false }) => {
           {!isHiddenCart && (
             <div
               onClick={() => {
-                navigate("/order");
+                const isUserCartValid = order?.orderItems.some(
+                  (item) => item.userCart === user?.id
+                )
+                if(user?.id && isUserCartValid){
+                  navigate("/order");
+                }
+                // navigate("/order");
               }}
               style={{ cursor: "pointer" }}
             >
-              <Badge count={order?.orderItems?.length} size="small">
+              <Badge count={order?.orderItems.filter((orderItem) => orderItem.userCart === user?.id)?.length} size="small">
                 <ShoppingCartOutlined
                   style={{ fontSize: "30px", color: "#fff" }}
                 />

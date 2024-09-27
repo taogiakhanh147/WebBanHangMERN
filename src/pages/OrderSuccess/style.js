@@ -67,7 +67,6 @@ export const WrapperItemOrderInfo = styled.div`
   border-top-right-radius: 6px;
   border-top-left-radius: 6px;
   width: 100%;
-  display: flex;
   justify-content: center;
 `
 
