@@ -31,7 +31,7 @@ const OrderAdmin = ({ orderId, setOrderId }) => {
   };
 
   useEffect(() => {
-    if ((orderId = null)) {
+    if (orderId === null) {
       getAllOrder();
     }
   }, [orderId]);
@@ -39,8 +39,8 @@ const OrderAdmin = ({ orderId, setOrderId }) => {
   const queryOrder = useQuery({
     queryKey: ["orders"],
     queryFn: getAllOrder,
-    staleTime: 1000 * 60,
-    keepPreviousData: true,
+    // staleTime: 1000 * 1,
+    // keepPreviousData: true,
   });
   const { isLoading: isLoadingOrders, data: orders } = queryOrder;
 
