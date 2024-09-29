@@ -21,6 +21,8 @@ const SignUpPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [isInitialLoad, setIsInitialLoad] = useState(true)
   const navigate = useNavigate();
 
   const mutation = useMutationHooks((data) => UserService.signupUser(data));
@@ -32,12 +34,15 @@ const SignUpPage = () => {
       message.success();
       handleNavigateSignIn();
     } else {
+      if(!isInitialLoad)
       message.error();
     }
-  }, [isSuccess, isError]);
+    setIsInitialLoad(false)
+  }, [isSuccess, isError, setIsInitialLoad]);
 
   const handleOnChangeEmail = (value) => {
     setEmail(value);
+    setEmailError("");
   };
 
   const handleOnChangePassword = (value) => {
@@ -53,6 +58,12 @@ const SignUpPage = () => {
   };
 
   const handleSignUp = () => {
+    const reg = /^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/;
+    const isCheckEmail = reg.test(email);
+    if (!isCheckEmail) {
+      setEmailError("Email không hợp lệ");
+      return;
+    }
     mutation.mutate({ email, password, confirmPassword });
   };
 
@@ -84,6 +95,7 @@ const SignUpPage = () => {
             value={email}
             onChange={handleOnChangeEmail}
           />
+          {emailError && <span style={{ color: "red" }}>{emailError}</span>}
           <div style={{ position: "relative", marginBottom: `10px` }}>
             <span
               onClick={() => setIsShowPassword(!isShowPassword)}
