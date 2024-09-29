@@ -16,6 +16,7 @@ import CustomizedContent from "./components/CustomizedContent";
 
 const AdminPage = () => {
   const user = useSelector((state) => state?.user)
+  const [orderId, setOrderId] = useState(null);
 
   const items = [
     getItem('Người dùng', 'users', <UserOutlined />),
@@ -77,9 +78,7 @@ const AdminPage = () => {
           <AdminProduct />
         )
       case 'orders':
-        return (
-          <OrderAdmin />
-        )
+        return <OrderAdmin orderId={orderId} setOrderId={setOrderId}/>;
       default:
         return <></>
     }
@@ -87,6 +86,9 @@ const AdminPage = () => {
 
   const handleOnCLick = ({ key }) => {
     setKeySelected(key)
+    if(key === 'orders') {
+      setOrderId(null)
+    }
   }
   return (
     <>

@@ -2,7 +2,7 @@ import { Table } from "antd";
 import React, { useState } from "react";
 import Loading from "../LoadingComponent/Loading";
 
-const TableComponent = (props) => {
+const TableDetailComponent = (props) => {
   const {
     selectionType = "checkbox",
     data = [],
@@ -23,13 +23,7 @@ const TableComponent = (props) => {
   const handleDeleteAll = () => {
     handleDeleteMany(rowSelectedKeys);
   };
-
-  const handleExportToExcel = () => {
-    if (exportToExcel) {
-      exportToExcel();
-    }
-  };
-
+  
   return (
     <Loading isPending={isLoading}>
       {rowSelectedKeys.length > 0 && (
@@ -54,21 +48,6 @@ const TableComponent = (props) => {
           justifyContent: "flex-end",
         }}
       >
-        <button
-          onClick={handleExportToExcel}
-          style={{
-            background: "green",
-            marginTop: "10px",
-            marginBottom: "10px",
-            color: "white",
-            padding: "10px",
-            fontSize: "12px",
-            cursor: "pointer",
-            border: "none",
-          }}
-        >
-          Export to Excel
-        </button>
       </div>
 
       <Table
@@ -84,4 +63,4 @@ const TableComponent = (props) => {
   );
 };
 
-export default TableComponent;
+export default TableDetailComponent;

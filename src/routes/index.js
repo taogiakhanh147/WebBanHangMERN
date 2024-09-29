@@ -1,3 +1,4 @@
+import OrderAdminDetail from "../components/OrderAdminDetail/OrderAdminDetail";
 import AdminPage from "../pages/AdminPage/AdminPage";
 import DetailsOrderPage from "../pages/DetailsOrderPage/DetailsOrderPage";
 import HomePage from "../pages/HomePage/HomePage";
@@ -78,6 +79,12 @@ export const routes = [
     {
         path: '/system/admin',
         page: AdminPage,
+        isShowHeader: false,
+        isPrivate: true
+    },
+    {
+        path: '/order-admin-detail/:id',
+        page: OrderAdminDetail,
         isShowHeader: false,
         isPrivate: true
     },
