@@ -12,19 +12,18 @@ import * as message from "../Message/Message";
 
 import * as OrderService from "../../services/OrderService";
 import { useQuery } from "@tanstack/react-query";
-import {
-  DeleteOutlined,
-  EditOutlined,
-  SearchOutlined,
-} from "@ant-design/icons";
+import { DeleteOutlined, EyeOutlined, SearchOutlined } from "@ant-design/icons";
 import { useSelector } from "react-redux";
 import { orderContant } from "../../contant";
 import PieChartComponent from "./PieChart";
 import OrderAdminDetail from "../OrderAdminDetail/OrderAdminDetail";
 import { useNavigate } from "react-router-dom";
+import { useMutationHooks } from "../../hooks/useMutationHook";
 
 const OrderAdmin = ({ orderId, setOrderId }) => {
   const user = useSelector((state) => state?.user);
+  const [isModalOpenDelete, setIsModalOpenDelete] = useState(false);
+  const [rowSelected, setRowSelected] = useState("");
 
   const getAllOrder = async () => {
     const res = await OrderService.getAllOrder(user?.access_token);
@@ -44,10 +43,6 @@ const OrderAdmin = ({ orderId, setOrderId }) => {
     keepPreviousData: true,
   });
   const { isLoading: isLoadingOrders, data: orders } = queryOrder;
-
-  console.log("orders.data", orders.data);
-
-  console.log("orderId", orderId);
 
   const getColumnSearchProps = (dataIndex) => ({
     filterDropdown: ({
@@ -119,14 +114,83 @@ const OrderAdmin = ({ orderId, setOrderId }) => {
     setOrderId(id);
   };
 
+  const handleCancelDelete = () => {
+    setIsModalOpenDelete(false);
+  };
+
+  const mutationDeleted = useMutationHooks((data) => {
+    const { id } = data;
+    const res = OrderService.deleteOrder(id);
+    return res;
+  });
+
+  const mutationDeletedMany = useMutationHooks((data) => {
+    const { ...ids } = data;
+    const res = OrderService.deleteManyOrder(ids);
+    return res;
+  });
+
+  const {
+    data: dataDeleted,
+    isPending: isPendingDeleted,
+    isSuccess: isSuccessDeleted,
+    isError: isErrorDeleted,
+  } = mutationDeleted;
+
+  const {
+    data: dataDeletedMany,
+    isPending: isPendingDeletedMany,
+    isSuccess: isSuccessDeletedMany,
+    isError: isErrorDeletedMany,
+  } = mutationDeletedMany;
+
+  const handleDeleteProduct = () => {
+    mutationDeleted.mutate(
+      { id: rowSelected },
+      {
+        onSettled: () => {
+          queryOrder.refetch();
+        },
+      }
+    );
+  };
+
+  const handleDeleteManyOrders = (ids) => {
+    mutationDeletedMany.mutate(
+      { ids: ids },
+      {
+        onSettled: () => {
+          queryOrder.refetch();
+        },
+      }
+    );
+  };
+
+  useEffect(() => {
+    if (isSuccessDeleted && dataDeleted?.status === "OK") {
+      message.success();
+      handleCancelDelete();
+    } else if (isErrorDeleted) {
+      message.error();
+    }
+  }, [isSuccessDeleted]);
+
+  useEffect(() => {
+    if (isSuccessDeletedMany && dataDeletedMany?.status === "OK") {
+      message.success();
+    } else if (isErrorDeletedMany) {
+      message.error();
+    }
+  }, [isSuccessDeletedMany]);
+
   const renderAction = (id) => {
     return (
       <div>
         <DeleteOutlined
           style={{ color: "red", fontSize: "30px", cursor: "pointer" }}
-          // onClick={() => setIsModalOpenDelete(true)}
+          onClick={() => setIsModalOpenDelete(true)}
         />
-        <EditOutlined
+        <EyeOutlined
           style={{ color: "orange", fontSize: "30px", cursor: "pointer" }}
           onClick={() => handleOrderAdminDetail(id)}
         />
@@ -205,12 +269,31 @@ const OrderAdmin = ({ orderId, setOrderId }) => {
           </div>
           <div style={{ marginTop: "20px" }}>
             <TableComponent
+              handleDeleteMany={handleDeleteManyOrders}
               id={orders?.data?._id}
               columns={columns}
               isLoading={isLoadingOrders}
               data={dataTable}
+              onRow={(record, rowIndex) => {
+                return {
+                  onClick: (event) => {
+                    setRowSelected(record._id);
+                  },
+                };
+              }}
             />
           </div>
+
+          <ModalComponent
+            title="Xóa sản phẩm"
+            open={isModalOpenDelete}
+            onCancel={handleCancelDelete}
+            onOk={handleDeleteProduct}
+          >
+            <Loading isPending={isPendingDeleted}>
+              <div>Bạn có chắc xóa sản phẩm này không!</div>
+            </Loading>
+          </ModalComponent>
         </div>
       )}
     </>

@@ -5,6 +5,7 @@ import * as OrderService from "../../services/OrderService";
 import { WrapperHeader } from "./style";
 import TableDetailComponent from "../TableDetailComponent/TableDetailComponent";
 import { useQuery } from "@tanstack/react-query";
+import { orderContant } from "../../contant";
 
 const OrderAdminDetail = ({ orderId }) => {
   const user = useSelector((state) => state?.user);
@@ -37,6 +38,14 @@ const OrderAdminDetail = ({ orderId }) => {
       title: "Điện thoại",
       dataIndex: "phone",
     },
+    {
+      title: "Phương thức thanh toán",
+      dataIndex: "paymentMethod",
+    },
+    {
+      title: "Tình trạng thanh toán",
+      dataIndex: "isPaid",
+    },
   ];
 
   const infoProductColumns = [
@@ -61,6 +70,10 @@ const OrderAdminDetail = ({ orderId }) => {
       title: "Giảm giá",
       dataIndex: "discount",
     },
+    {
+      title: "Tổng",
+      dataIndex: "total",
+    },
   ];
 
   const dataInfoCustomerTable = orderDetails?.data
@@ -71,6 +84,8 @@ const OrderAdminDetail = ({ orderId }) => {
           address: orderDetails.data.shippingAddress?.address,
           city: orderDetails.data.shippingAddress?.city,
           phone: orderDetails.data.shippingAddress?.phone,
+          paymentMethod: orderContant.payment[orderDetails?.data?.paymentMethod],
+          isPaid: orderDetails?.isPaid ? "Đã thanh toán" : "Chưa thanh toán",
         },
       ]
     : [];
@@ -82,7 +97,8 @@ const OrderAdminDetail = ({ orderId }) => {
         image: orderItem.image,
         amount: orderItem.amount,
         price: convertPrice(orderItem.price),
-        discount: orderItem.discount,
+        discount: convertPrice(orderItem.price * (orderItem.discount ?? 0) / 100) ,
+        total: convertPrice(orderItem.price - (orderItem.price * (orderItem.discount ?? 0) / 100)),
       }))
     : orderDetails?.data?.orderItems
     ? [
@@ -92,7 +108,8 @@ const OrderAdminDetail = ({ orderId }) => {
           image: orderDetails.data.orderItems.image,
           amount: orderDetails.data.orderItems.amount,
           price: convertPrice(orderDetails.data.orderItems.price),
-          discount: orderDetails.data.orderItems.discount,
+          discount: convertPrice(orderDetails.data.orderItems.price * (orderDetails.data.orderItems.discount ?? 0) / 100) ,
+          total: convertPrice(orderDetails.data.orderItems.price - (orderDetails.data.orderItems.price * (orderDetails.data.orderItems.discount ?? 0) / 100)),
         },
       ]
     : [];
