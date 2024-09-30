@@ -58,7 +58,7 @@ const SignUpPage = () => {
   };
 
   const handleSignUp = () => {
-    const reg = /^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/;
+    const reg = /^\w+([-+.']\w+)*@gmail\.com$/; 
     const isCheckEmail = reg.test(email);
     if (!isCheckEmail) {
       setEmailError("Email không hợp lệ");
